@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eureka Juniors - Smart Tool Recommendations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #8b5cf6 0%, #dc2626 100%);
+        }
+        .glass-effect {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .loading-spinner {
+            border: 3px solid #374151;
+            border-top: 3px solid #8b5cf6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body class="bg-gray-900">
+    <!-- Navigation -->
+    <nav class="glass-effect border-b border-gray-700 fixed w-full top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <i class="fas fa-lightbulb text-2xl text-violet-400"></i>
+                        <span class="font-bold text-xl text-white">Eureka Juniors</span>
+                    </a>
+                </div>
+                <div class="flex space-x-8">
+                    <a href="index.html" class="text-gray-300 hover:text-violet-400 font-medium transition">Home</a>
+                    <a href="methodology.html" class="text-gray-300 hover:text-violet-400 font-medium transition">Methodology</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white pt-32 pb-20 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-5xl font-bold mb-6 fade-in">Find the Perfect Tool for Your Task</h1>
+            <p class="text-xl mb-2 opacity-90 fade-in" style="animation-delay: 0.1s;">
+                Trust-first, use-case driven recommendations for students, researchers, and knowledge workers
+            </p>
+            <p class="text-lg opacity-80 fade-in" style="animation-delay: 0.2s;">
+                Save time, reduce wasted spend, and get evidence-backed recommendations
+            </p>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="max-w-4xl mx-auto px-4 -mt-10 mb-16">
+        <div class="glass-effect rounded-2xl shadow-xl p-8">
+            <form id="searchForm" class="space-y-6">
+                <!-- Use Case Description -->
+                <div>
+                    <label for="useCase" class="block text-sm font-semibold text-white mb-2">
+                        <i class="fas fa-tasks mr-2 text-violet-400"></i>Describe Your Task or Need
+                    </label>
+                    <textarea 
+                        id="useCase" 
+                        rows="4" 
+                        class="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 resize-none placeholder-gray-400"
+                        placeholder="Example: I need a tool to transcribe audio interviews for my research project. The audio files are in multiple languages and I need accurate timestamps..."
+                        required
+                    ></textarea>
+                </div>
+
+                <!-- Constraints Grid -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Budget -->
+                    <div>
+                        <label for="budget" class="block text-sm font-semibold text-white mb-2">
+                            <i class="fas fa-dollar-sign mr-2 text-green-400"></i>Budget Range
+                        </label>
+                        <select id="budget" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="free">Free only</option>
+                            <option value="under20">Under $20/month</option>
+                            <option value="under50">Under $50/month</option>
+                            <option value="under100">Under $100/month</option>
+                            <option value="flexible">Flexible budget</option>
+                        </select>
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label for="category" class="block text-sm font-semibold text-white mb-2">
+                            <i class="fas fa-layer-group mr-2 text-cyan-400"></i>Category
+                        </label>
+                        <select id="category" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+                            <option value="any">Any category</option>
+                            <option value="ai-writing">AI Writing Tools</option>
+                            <option value="research">Research & Academia</option>
+                            <option value="data-analysis">Data Analysis</option>
+                            <option value="productivity">Productivity</option>
+                            <option value="design">Design & Creative</option>
+                            <option value="development">Development Tools</option>
+                            <option value="collaboration">Collaboration</option>
+                            <option value="audio-video">Audio & Video</option>
+                        </select>
+                    </div>
+
+                    <!-- Platform -->
+                    <div>
+                        <label for="platform" class="block text-sm font-semibold text-white mb-2">
+                            <i class="fas fa-laptop mr-2 text-yellow-400"></i>Platform
+                        </label>
+                        <select id="platform" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                            <option value="any">Any platform</option>
+                            <option value="web">Web-based</option>
+                            <option value="windows">Windows</option>
+                            <option value="mac">macOS</option>
+                            <option value="linux">Linux</option>
+                            <option value="mobile">Mobile (iOS/Android)</option>
+                        </select>
+                    </div>
+
+                    <!-- Privacy Requirements -->
+                    <div>
+                        <label for="privacy" class="block text-sm font-semibold text-white mb-2">
+                            <i class="fas fa-shield-alt mr-2 text-red-400"></i>Privacy Requirements
+                        </label>
+                        <select id="privacy" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                            <option value="standard">Standard</option>
+                            <option value="high">High privacy (GDPR compliant)</option>
+                            <option value="local">Local/on-premise only</option>
+                            <option value="opensource">Open source preferred</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Additional Requirements -->
+                <div>
+                    <label for="additional" class="block text-sm font-semibold text-white mb-2">
+                        <i class="fas fa-plus-circle mr-2 text-violet-400"></i>Additional Requirements (Optional)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="additional" 
+                        class="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 placeholder-gray-400"
+                        placeholder="e.g., API access, specific integrations, team collaboration features..."
+                    >
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    id="submitBtn"
+                    class="w-full bg-gradient-to-r from-violet-600 to-red-600 text-white font-semibold py-4 px-8 rounded-lg hover:from-violet-700 hover:to-red-700 transition duration-300 transform hover:scale-[1.02] shadow-lg border border-violet-500"
+                >
+                    <i class="fas fa-search mr-2"></i>Get Recommendations
+                </button>
+            </form>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden text-center py-8">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-gray-300 font-medium">Analyzing your requirements...</p>
+                <p class="text-sm text-gray-400 mt-2">This may take a few moments as we search for the best matches</p>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-400">© 2024 Eureka Juniors - Prototype for Business Competition</p>
+            <p class="text-gray-500 text-sm mt-2">Powered by AI-driven recommendations</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
