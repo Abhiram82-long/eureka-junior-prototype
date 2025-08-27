@@ -15,29 +15,6 @@ class ResultsAnimationController {
         this.setupFavorites();
     }
     
-    // Staggered card animations
-    animateCards() {
-        const cards = document.querySelectorAll('.recommendation-card');
-        cards.forEach((card, index) => {
-            // Use requestAnimationFrame for better performance
-            setTimeout(() => {
-                requestAnimationFrame(() => {
-                    card.classList.add('animate-in');
-                    this.animateConfidenceBar(card);
-                });
-            }, index * 150);
-        });
-    }
-    
-    animateConfidenceBar(card) {
-        const bar = card.querySelector('.confidence-bar');
-        const percentage = bar.dataset.confidence;
-        if (bar && percentage) {
-            setTimeout(() => {
-                bar.style.width = `${percentage}%`;
-            }, 300);
-        }
-    }
     
     setupCardAnimations() {
         // Add hover sound effect (visual feedback)
@@ -454,13 +431,26 @@ function displayRecommendations(data) {
     // Display each recommendation with staggered animation
     data.recommendations.forEach((rec, index) => {
         const cardHTML = createRecommendationCard(rec, index);
-        container.innerHTML += cardHTML;
+        const cardElement = document.createElement('div');
+        cardElement.innerHTML = cardHTML.trim();
+        const card = cardElement.firstChild;
+        container.appendChild(card);
+
+        // Use requestAnimationFrame for better performance
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                card.classList.add('animate-in');
+                // Animate the confidence bar for this specific card
+                const bar = card.querySelector('.confidence-bar');
+                const percentage = bar.dataset.confidence;
+                if (bar && percentage) {
+                    setTimeout(() => {
+                        bar.style.width = `${percentage}%`;
+                    }, 300);
+                }
+            });
+        }, index * 150);
     });
-    
-    // Trigger animations after cards are added to DOM
-    setTimeout(() => {
-        window.resultsAnimationController.animateCards();
-    }, 100);
     
     // Display additional notes if available
     if (data.additionalNotes) {

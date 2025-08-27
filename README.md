@@ -44,7 +44,7 @@ Eureka Juniors solves the problem of finding the right tool for specific tasks b
 
 ### 2. Results Page (results.html)
 - **Enhanced recommendation cards** with:
-  - **Staggered entrance animations** for visual impact
+  - **Progressive rendering** with staggered entrance animations for a smoother user experience.
   - **Animated confidence bars** with shimmer effects
   - **Hover effects** with scale and glow transitions
   - Ranking and confidence scores
@@ -89,7 +89,7 @@ Eureka Juniors solves the problem of finding the right tool for specific tasks b
 
 ### API Integration:
 - **Gemini API Endpoint**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent`
-- **API Key**: Configured in `js/main.js`
+- **API Key**: Provided by the user at runtime. The key is stored in `sessionStorage` for the duration of the session and is not persisted.
 
 ### JavaScript Modules:
 - `/js/main.js` - Handles search form, API calls, and navigation
@@ -113,14 +113,12 @@ These features are planned for future development:
 ## 💡 Recommended Next Steps
 
 1. **Enhance Error Handling**:
-   - Add retry logic for API failures
-   - Implement graceful degradation
-   - Add user-friendly error messages
+   - Add retry logic for API failures.
+   - Implement graceful degradation for cases where the API is unavailable.
 
 2. **Improve Performance**:
-   - Implement caching for repeated searches
-   - Add progressive loading for results
-   - Optimize API calls
+   - Further optimize API calls by reducing payload size or complexity.
+   - Investigate options for pre-warming or caching common query results on a backend layer.
 
 3. **Add Analytics**:
    - Track search patterns
@@ -183,14 +181,15 @@ These features are planned for future development:
 
 ## 🎥 Demo Instructions
 
-1. **Start**: Open `index.html` in a modern web browser
-2. **Search**: Either:
-   - Fill in the search form with your requirements
-   - Click on a quick-start example to pre-fill the form
-3. **Submit**: Click "Get Recommendations"
-4. **Review**: Examine the AI-generated recommendations on the results page
-5. **Export**: Use print or JSON export for documentation
-6. **Learn**: Visit the Methodology page to understand the process
+1. **Start**: Open `index.html` in a modern web browser.
+2. **Enter API Key**: Provide your Google Gemini API key in the designated input field. This is required to power the recommendations.
+3. **Search**: Either:
+   - Fill in the search form with your requirements.
+   - Click on a quick-start example to pre-fill the form.
+4. **Submit**: Click "Get Recommendations".
+5. **Review**: Examine the AI-generated recommendations on the results page.
+6. **Export**: Use print or JSON export for documentation.
+7. **Learn**: Visit the Methodology page to understand the process.
 
 ## 📝 Notes for Competition Submission
 
