@@ -2,7 +2,6 @@
 // Modern ES6+ Implementation with Advanced Animations
 
 // API Configuration
-const GEMINI_API_KEY = 'AIzaSyBavnM7QlTfQ0N2LWnZ2aohvUjmNwhsULM';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
 // Animation and UX Controller
@@ -91,6 +90,13 @@ class AnimationController {
     }
 }
 
+// Unicode-safe Base64 encoding
+function safeBtoa(str) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+        return String.fromCharCode('0x' + p1);
+    }));
+}
+
 // Cache Management
 class CacheManager {
     constructor() {
@@ -99,16 +105,17 @@ class CacheManager {
     }
     
     generateKey(formData) {
-        return btoa(JSON.stringify(formData)).replace(/[^a-zA-Z0-9]/g, '');
+        // Use the safe btoa function and remove non-alphanumeric characters for a clean key
+        return safeBtoa(JSON.stringify(formData)).replace(/[^a-zA-Z0-9]/g, '');
     }
     
     set(key, data) {
         const cacheData = { data, timestamp: Date.now() };
-        localStorage.setItem(`${this.cacheName}-${key}`, JSON.stringify(cacheData));
+        sessionStorage.setItem(`${this.cacheName}-${key}`, JSON.stringify(cacheData));
     }
     
     get(key) {
-        const cached = localStorage.getItem(`${this.cacheName}-${key}`);
+        const cached = sessionStorage.getItem(`${this.cacheName}-${key}`);
         if (!cached) return null;
         
         try {
@@ -126,7 +133,7 @@ class CacheManager {
     }
     
     remove(key) {
-        localStorage.removeItem(`${this.cacheName}-${key}`);
+        sessionStorage.removeItem(`${this.cacheName}-${key}`);
     }
 }
 
@@ -134,11 +141,29 @@ class CacheManager {
 document.addEventListener('DOMContentLoaded', function() {
     const animationController = new AnimationController();
     const cacheManager = new CacheManager();
+
+    // Pre-fill API key from session storage
+    const apiKeyInput = document.getElementById('apiKey');
+    const savedApiKey = sessionStorage.getItem('geminiApiKey');
+    if (savedApiKey) {
+        apiKeyInput.value = savedApiKey;
+    }
     
     const searchForm = document.getElementById('searchForm');
     if (searchForm) {
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Handle API Key
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                showNotification('Please enter your Gemini API key.', 'error');
+                apiKeyInput.focus();
+                apiKeyInput.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => { apiKeyInput.style.animation = ''; }, 500);
+                return;
+            }
+            sessionStorage.setItem('geminiApiKey', apiKey);
             
             // Collect form data
             const formData = {
@@ -291,6 +316,11 @@ Ensure all recommendations are real, currently available tools with accurate inf
 
 // Call Gemini API
 async function getRecommendations(prompt) {
+    const apiKey = sessionStorage.getItem('geminiApiKey');
+    if (!apiKey) {
+        throw new Error('API key not found. Please provide your API key.');
+    }
+
     const requestBody = {
         contents: [{
             parts: [{
@@ -323,7 +353,7 @@ async function getRecommendations(prompt) {
         ]
     };
     
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
