@@ -19,9 +19,12 @@ class ResultsAnimationController {
     animateCards() {
         const cards = document.querySelectorAll('.recommendation-card');
         cards.forEach((card, index) => {
+            // Use requestAnimationFrame for better performance
             setTimeout(() => {
-                card.classList.add('animate-in');
-                this.animateConfidenceBar(card);
+                requestAnimationFrame(() => {
+                    card.classList.add('animate-in');
+                    this.animateConfidenceBar(card);
+                });
             }, index * 150);
         });
     }
@@ -124,6 +127,135 @@ class ResultsAnimationController {
         }
     }
     
+    showComparison() {
+        if (this.selectedTools.size < 2) {
+            this.createNotification('Please select at least 2 tools to compare', 'warning');
+            return;
+        }
+        
+        // Get the recommendation data for selected tools
+        const recommendations = JSON.parse(sessionStorage.getItem('recommendations') || '{}');
+        const selectedRecommendations = recommendations.recommendations.filter(rec => 
+            this.selectedTools.has(rec.name)
+        );
+        
+        // Create comparison modal or view
+        this.createComparisonModal(selectedRecommendations);
+    }
+    
+    createComparisonModal(recommendations) {
+        // Remove existing modal if any
+        const existingModal = document.getElementById('comparisonModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        const modal = document.createElement('div');
+        modal.id = 'comparisonModal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4';
+        
+        const modalContent = document.createElement('div');
+        modalContent.className = 'bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto';
+        
+        modalContent.innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-white">Tool Comparison</h2>
+                    <button id="closeModal" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                
+                <div class="grid gap-6 ${recommendations.length === 2 ? 'md:grid-cols-2' : recommendations.length === 3 ? 'md:grid-cols-3' : 'grid-cols-1'}">
+                    ${recommendations.map(rec => this.createComparisonCard(rec)).join('')}
+                </div>
+                
+                <div class="mt-6 pt-6 border-t border-gray-700">
+                    <div class="grid md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <h4 class="font-semibold text-white mb-2">Pricing Comparison</h4>
+                            ${recommendations.map(rec => `
+                                <div class="text-gray-300 mb-1">
+                                    <span class="font-medium">${rec.name}:</span> ${rec.pricing}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white mb-2">Confidence Scores</h4>
+                            ${recommendations.map(rec => `
+                                <div class="text-gray-300 mb-1 flex justify-between">
+                                    <span>${rec.name}:</span> 
+                                    <span class="font-bold text-${rec.confidence >= 80 ? 'green' : rec.confidence >= 60 ? 'yellow' : 'red'}-400">${rec.confidence}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white mb-2">Trial Availability</h4>
+                            ${recommendations.map(rec => `
+                                <div class="text-gray-300 mb-1">
+                                    <span class="font-medium">${rec.name}:</span> 
+                                    <span class="text-${rec.trialAvailable ? 'green' : 'red'}-400">
+                                        ${rec.trialAvailable ? 'Available' : 'Not Available'}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        // Add close event listener
+        document.getElementById('closeModal').addEventListener('click', () => {
+            modal.remove();
+        });
+        
+        // Close on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        this.createNotification(`Comparing ${recommendations.length} selected tools`, 'success');
+    }
+    
+    createComparisonCard(rec) {
+        return `
+            <div class="bg-gray-900 border border-gray-600 rounded-lg p-4">
+                <h3 class="text-lg font-bold text-white mb-2">${rec.name}</h3>
+                <p class="text-gray-300 text-sm mb-3">${rec.tagline}</p>
+                
+                <div class="space-y-3">
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-300 mb-1">Key Features</h4>
+                        <ul class="text-xs text-gray-400 space-y-1">
+                            ${rec.keyFeatures.slice(0, 3).map(feature => `
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-400 mr-1 mt-0.5 text-xs"></i>
+                                    ${feature}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs">
+                            <span class="text-gray-400">Confidence:</span>
+                            <span class="font-bold text-${rec.confidence >= 80 ? 'green' : rec.confidence >= 60 ? 'yellow' : 'red'}-400">${rec.confidence}%</span>
+                        </div>
+                        <a href="${rec.website}" target="_blank" class="bg-violet-600 text-white px-2 py-1 rounded text-xs hover:bg-violet-700 transition">
+                            Visit
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
     exportResults() {
         const recommendations = JSON.parse(sessionStorage.getItem('recommendations') || '{}');
         const query = JSON.parse(sessionStorage.getItem('searchQuery') || '{}');
@@ -178,11 +310,15 @@ class ResultsAnimationController {
     }
     
     createNotification(message, type = 'info') {
+        // Remove existing notifications to prevent stacking
+        const existingNotifications = document.querySelectorAll('.notification-toast');
+        existingNotifications.forEach(notif => notif.remove());
+        
         const notification = document.createElement('div');
         const bgColor = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : type === 'warning' ? 'bg-yellow-600' : 'bg-blue-600';
         const icon = type === 'error' ? 'fa-exclamation-triangle' : type === 'success' ? 'fa-check' : type === 'warning' ? 'fa-exclamation' : 'fa-info-circle';
         
-        notification.className = `fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-300`;
+        notification.className = `notification-toast fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-300`;
         
         notification.innerHTML = `
             <div class="flex items-center">
@@ -196,15 +332,21 @@ class ResultsAnimationController {
         
         document.body.appendChild(notification);
         
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-            notification.style.opacity = '1';
-        }, 100);
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+                notification.style.opacity = '1';
+            }, 100);
+        });
         
         setTimeout(() => {
             notification.style.transform = 'translateX(100%)';
             notification.style.opacity = '0';
-            setTimeout(() => notification.remove(), 300);
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
         }, 4000);
         
         return notification;
@@ -222,38 +364,20 @@ document.addEventListener('DOMContentLoaded', () => {
     loadResults();
 });
 
-// Theme Management (shared with main.js)
+// Theme Management (Note: theme toggle has been removed, but we maintain theme functionality)
 function initTheme() {
-    const themeToggle = document.getElementById('themeToggle');
     const savedTheme = localStorage.getItem('eureka-theme') || 'dark';
     
     applyTheme(savedTheme);
-    
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            applyTheme(newTheme);
-            localStorage.setItem('eureka-theme', newTheme);
-        });
-    }
 }
 
 function applyTheme(theme) {
-    const themeToggle = document.getElementById('themeToggle');
-    
     if (theme === 'light') {
         document.documentElement.setAttribute('data-theme', 'light');
         document.body.className = document.body.className.replace('bg-gray-900', 'bg-white');
-        if (themeToggle) {
-            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        }
     } else {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.body.className = document.body.className.replace('bg-white', 'bg-gray-900');
-        if (themeToggle) {
-            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        }
     }
 }
 
@@ -474,24 +598,29 @@ function createRecommendationCard(rec, index) {
     `;
 }
 
-// Export results as JSON
+// Export results as JSON (standalone function for HTML onclick)
 function exportResults() {
-    const query = JSON.parse(sessionStorage.getItem('searchQuery') || '{}');
-    const recommendations = JSON.parse(sessionStorage.getItem('recommendations') || '{}');
-    
-    const exportData = {
-        timestamp: new Date().toISOString(),
-        query: query,
-        recommendations: recommendations
-    };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `eureka-recommendations-${Date.now()}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+    if (window.resultsAnimationController) {
+        window.resultsAnimationController.exportResults();
+    } else {
+        // Fallback if controller not available
+        const query = JSON.parse(sessionStorage.getItem('searchQuery') || '{}');
+        const recommendations = JSON.parse(sessionStorage.getItem('recommendations') || '{}');
+        
+        const exportData = {
+            timestamp: new Date().toISOString(),
+            query: query,
+            recommendations: recommendations
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `eureka-recommendations-${Date.now()}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    }
 }

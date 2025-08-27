@@ -58,15 +58,19 @@ class AnimationController {
         }
     }
     
-    // Form animations
+    // Form animations with performance optimization
     setupFormAnimations() {
         const inputs = document.querySelectorAll('.input-enhanced');
         inputs.forEach(input => {
             input.addEventListener('focus', (e) => {
-                e.target.parentElement.style.transform = 'translateY(-2px)';
+                requestAnimationFrame(() => {
+                    e.target.parentElement.style.transform = 'translateY(-2px)';
+                });
             });
             input.addEventListener('blur', (e) => {
-                e.target.parentElement.style.transform = '';
+                requestAnimationFrame(() => {
+                    e.target.parentElement.style.transform = '';
+                });
             });
         });
     }
@@ -107,12 +111,18 @@ class CacheManager {
         const cached = localStorage.getItem(`${this.cacheName}-${key}`);
         if (!cached) return null;
         
-        const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp > this.cacheExpiry) {
+        try {
+            const { data, timestamp } = JSON.parse(cached);
+            if (Date.now() - timestamp > this.cacheExpiry) {
+                this.remove(key);
+                return null;
+            }
+            return data;
+        } catch (e) {
+            // Invalid cache data, remove it
             this.remove(key);
             return null;
         }
-        return data;
     }
     
     remove(key) {
@@ -327,6 +337,11 @@ async function getRecommendations(prompt) {
     
     const data = await response.json();
     
+    // Validate response structure
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+        throw new Error('Invalid response structure from API');
+    }
+    
     // Extract the text from the response
     const text = data.candidates[0].content.parts[0].text;
     
@@ -334,25 +349,37 @@ async function getRecommendations(prompt) {
     try {
         // Remove any markdown code blocks if present
         const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        return JSON.parse(jsonStr);
+        const parsed = JSON.parse(jsonStr);
+        
+        // Validate parsed structure
+        if (!parsed.recommendations || !Array.isArray(parsed.recommendations)) {
+            throw new Error('Invalid recommendations structure');
+        }
+        
+        return parsed;
     } catch (e) {
         console.error('Failed to parse JSON response:', e);
+        console.error('Raw response text:', text);
         // Return a fallback structure
         return {
             recommendations: [],
             summary: "Failed to parse recommendations. Please try again.",
-            additionalNotes: ""
+            additionalNotes: "There was an issue processing the AI response. Please verify your internet connection and try again."
         };
     }
 }
 
 // Enhanced notification system
 function showNotification(message, type = 'info') {
+    // Remove existing notifications to prevent stacking
+    const existingNotifications = document.querySelectorAll('.notification-toast');
+    existingNotifications.forEach(notif => notif.remove());
+    
     const notification = document.createElement('div');
     const bgColor = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-blue-600';
     const icon = type === 'error' ? 'fa-exclamation-triangle' : type === 'success' ? 'fa-check' : 'fa-info-circle';
     
-    notification.className = `fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-300`;
+    notification.className = `notification-toast fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-300`;
     
     notification.innerHTML = `
         <div class="flex items-center">
@@ -366,15 +393,21 @@ function showNotification(message, type = 'info') {
     
     document.body.appendChild(notification);
     
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-        notification.style.opacity = '1';
-    }, 100);
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        }, 100);
+    });
     
     setTimeout(() => {
         notification.style.transform = 'translateX(100%)';
         notification.style.opacity = '0';
-        setTimeout(() => notification.remove(), 300);
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
     }, 5000);
 }
 
@@ -465,39 +498,21 @@ function fillExampleData(example) {
     }
 }
 
-// Theme Management
+// Theme Management (Note: theme toggle has been removed, but we maintain theme functionality)
 function initTheme() {
-    const themeToggle = document.getElementById('themeToggle');
     const savedTheme = localStorage.getItem('eureka-theme') || 'dark';
     
     // Apply saved theme
     applyTheme(savedTheme);
-    
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            applyTheme(newTheme);
-            localStorage.setItem('eureka-theme', newTheme);
-        });
-    }
 }
 
 function applyTheme(theme) {
-    const themeToggle = document.getElementById('themeToggle');
-    
     if (theme === 'light') {
         document.documentElement.setAttribute('data-theme', 'light');
         document.body.className = document.body.className.replace('bg-gray-900', 'bg-white');
-        if (themeToggle) {
-            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        }
     } else {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.body.className = document.body.className.replace('bg-white', 'bg-gray-900');
-        if (themeToggle) {
-            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        }
     }
 }
 
