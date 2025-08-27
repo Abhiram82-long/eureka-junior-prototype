@@ -1,9 +1,261 @@
-// Results page JavaScript for Eureka Juniors
+// Enhanced Results page JavaScript for Eureka Juniors
+// Modern ES6+ Implementation with Advanced Animations
+
+// Animation Controller for Results Page
+class ResultsAnimationController {
+    constructor() {
+        this.comparisonMode = false;
+        this.selectedTools = new Set();
+        this.init();
+    }
+    
+    init() {
+        this.setupCardAnimations();
+        this.setupActionButtons();
+        this.setupFavorites();
+    }
+    
+    // Staggered card animations
+    animateCards() {
+        const cards = document.querySelectorAll('.recommendation-card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('animate-in');
+                this.animateConfidenceBar(card);
+            }, index * 150);
+        });
+    }
+    
+    animateConfidenceBar(card) {
+        const bar = card.querySelector('.confidence-bar');
+        const percentage = bar.dataset.confidence;
+        if (bar && percentage) {
+            setTimeout(() => {
+                bar.style.width = `${percentage}%`;
+            }, 300);
+        }
+    }
+    
+    setupCardAnimations() {
+        // Add hover sound effect (visual feedback)
+        document.addEventListener('mouseover', (e) => {
+            if (e.target.closest('.recommendation-card')) {
+                const card = e.target.closest('.recommendation-card');
+                card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            }
+        });
+    }
+    
+    setupActionButtons() {
+        const compareBtn = document.getElementById('compareBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const newSearchBtn = document.getElementById('newSearchBtn');
+        
+        if (compareBtn) {
+            compareBtn.addEventListener('click', () => this.toggleComparisonMode());
+        }
+        
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportResults());
+        }
+        
+        if (newSearchBtn) {
+            newSearchBtn.addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+        }
+    }
+    
+    toggleComparisonMode() {
+        this.comparisonMode = !this.comparisonMode;
+        const container = document.getElementById('resultsContainer');
+        const compareBtn = document.getElementById('compareBtn');
+        
+        if (this.comparisonMode) {
+            container.classList.add('comparison-mode');
+            compareBtn.innerHTML = '<i class="fas fa-times mr-2"></i>Exit Compare';
+            compareBtn.className = compareBtn.className.replace('bg-violet-600 hover:bg-violet-700', 'bg-red-600 hover:bg-red-700');
+            this.showComparisonInstructions();
+        } else {
+            container.classList.remove('comparison-mode');
+            compareBtn.innerHTML = '<i class="fas fa-balance-scale mr-2"></i>Compare Tools';
+            compareBtn.className = compareBtn.className.replace('bg-red-600 hover:bg-red-700', 'bg-violet-600 hover:bg-violet-700');
+            this.selectedTools.clear();
+            document.querySelectorAll('.comparison-selected').forEach(card => {
+                card.classList.remove('comparison-selected');
+            });
+        }
+    }
+    
+    showComparisonInstructions() {
+        const notification = this.createNotification(
+            'Click on tools to select them for comparison (max 3)',
+            'info'
+        );
+    }
+    
+    selectForComparison(card, toolName) {
+        if (!this.comparisonMode) return;
+        
+        if (this.selectedTools.has(toolName)) {
+            this.selectedTools.delete(toolName);
+            card.classList.remove('comparison-selected');
+        } else if (this.selectedTools.size < 3) {
+            this.selectedTools.add(toolName);
+            card.classList.add('comparison-selected');
+        } else {
+            this.createNotification('Maximum 3 tools can be selected for comparison', 'warning');
+        }
+        
+        if (this.selectedTools.size >= 2) {
+            this.showCompareButton();
+        }
+    }
+    
+    showCompareButton() {
+        let compareBtn = document.getElementById('startComparisonBtn');
+        if (!compareBtn) {
+            compareBtn = document.createElement('button');
+            compareBtn.id = 'startComparisonBtn';
+            compareBtn.className = 'fixed bottom-20 right-20 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 z-40';
+            compareBtn.innerHTML = '<i class="fas fa-chart-bar mr-2"></i>Compare Selected';
+            compareBtn.addEventListener('click', () => this.showComparison());
+            document.body.appendChild(compareBtn);
+        }
+    }
+    
+    exportResults() {
+        const recommendations = JSON.parse(sessionStorage.getItem('recommendations') || '{}');
+        const query = JSON.parse(sessionStorage.getItem('searchQuery') || '{}');
+        
+        const exportData = {
+            timestamp: new Date().toISOString(),
+            query,
+            recommendations
+        };
+        
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: 'application/json'
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `eureka-recommendations-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.createNotification('Results exported successfully!', 'success');
+    }
+    
+    setupFavorites() {
+        // Add to favorites functionality
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('favorite-btn')) {
+                const toolName = e.target.dataset.tool;
+                this.toggleFavorite(toolName, e.target);
+            }
+        });
+    }
+    
+    toggleFavorite(toolName, button) {
+        const favorites = JSON.parse(localStorage.getItem('eureka-favorites') || '[]');
+        const index = favorites.indexOf(toolName);
+        
+        if (index === -1) {
+            favorites.push(toolName);
+            button.innerHTML = '<i class="fas fa-heart text-red-400"></i>';
+            this.createNotification(`${toolName} added to favorites!`, 'success');
+        } else {
+            favorites.splice(index, 1);
+            button.innerHTML = '<i class="far fa-heart text-gray-400"></i>';
+            this.createNotification(`${toolName} removed from favorites!`, 'info');
+        }
+        
+        localStorage.setItem('eureka-favorites', JSON.stringify(favorites));
+    }
+    
+    createNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        const bgColor = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : type === 'warning' ? 'bg-yellow-600' : 'bg-blue-600';
+        const icon = type === 'error' ? 'fa-exclamation-triangle' : type === 'success' ? 'fa-check' : type === 'warning' ? 'fa-exclamation' : 'fa-info-circle';
+        
+        notification.className = `fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-300`;
+        
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${icon} mr-3"></i>
+                <span>${message}</span>
+                <button class="ml-4 text-white hover:text-gray-300" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        }, 100);
+        
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+        
+        return notification;
+    }
+}
 
 // Load and display results when page loads
 document.addEventListener('DOMContentLoaded', () => {
+    const animationController = new ResultsAnimationController();
+    window.resultsAnimationController = animationController;
+    
+    // Initialize theme
+    initTheme();
+    
     loadResults();
 });
+
+// Theme Management (shared with main.js)
+function initTheme() {
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('eureka-theme') || 'dark';
+    
+    applyTheme(savedTheme);
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+            localStorage.setItem('eureka-theme', newTheme);
+        });
+    }
+}
+
+function applyTheme(theme) {
+    const themeToggle = document.getElementById('themeToggle');
+    
+    if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.body.className = document.body.className.replace('bg-gray-900', 'bg-white');
+        if (themeToggle) {
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.className = document.body.className.replace('bg-white', 'bg-gray-900');
+        if (themeToggle) {
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        }
+    }
+}
 
 function loadResults() {
     // Get data from sessionStorage
@@ -75,11 +327,16 @@ function displayRecommendations(data) {
         `;
     }
     
-    // Display each recommendation
+    // Display each recommendation with staggered animation
     data.recommendations.forEach((rec, index) => {
         const cardHTML = createRecommendationCard(rec, index);
         container.innerHTML += cardHTML;
     });
+    
+    // Trigger animations after cards are added to DOM
+    setTimeout(() => {
+        window.resultsAnimationController.animateCards();
+    }, 100);
     
     // Display additional notes if available
     if (data.additionalNotes) {
@@ -97,9 +354,13 @@ function displayRecommendations(data) {
 function createRecommendationCard(rec, index) {
     const confidenceColor = rec.confidence >= 80 ? 'green' : rec.confidence >= 60 ? 'yellow' : 'red';
     const rankBadgeColor = index === 0 ? 'violet' : index === 1 ? 'cyan' : 'blue';
+    const favorites = JSON.parse(localStorage.getItem('eureka-favorites') || '[]');
+    const isFavorite = favorites.includes(rec.name);
     
     return `
-        <div class="recommendation-card bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6 fade-in" style="animation-delay: ${index * 0.1}s;">
+        <div class="recommendation-card bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6" 
+             onclick="window.resultsAnimationController.selectForComparison(this, '${rec.name}')"
+             data-confidence="${rec.confidence}">
             <!-- Header -->
             <div class="flex justify-between items-start mb-4">
                 <div class="flex-grow">
@@ -116,7 +377,7 @@ function createRecommendationCard(rec, index) {
                     <div class="text-2xl font-bold text-${confidenceColor}-400">${rec.confidence}%</div>
                     <div class="text-xs text-gray-400">Confidence</div>
                     <div class="w-20 bg-gray-700 rounded-full h-2 mt-1">
-                        <div class="confidence-bar bg-${confidenceColor}-500 h-2 rounded-full" style="width: ${rec.confidence}%"></div>
+                        <div class="confidence-bar bg-${confidenceColor}-500 h-2 rounded-full" data-confidence="${rec.confidence}"></div>
                     </div>
                 </div>
             </div>
@@ -185,10 +446,20 @@ function createRecommendationCard(rec, index) {
                     <span class="text-gray-400 text-sm">Pricing:</span>
                     <span class="font-semibold text-white ml-2">${rec.pricing}</span>
                 </div>
-                <div class="flex gap-3">
-                    <a href="${rec.website}" target="_blank" class="bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition inline-flex items-center border border-violet-500">
-                        <i class="fas fa-external-link-alt mr-2"></i>Visit Website
-                    </a>
+                <div class="flex gap-3 items-center">
+                    <button class="favorite-btn" data-tool="${rec.name}" title="Add to favorites">
+                        <i class="${isFavorite ? 'fas fa-heart text-red-400' : 'far fa-heart text-gray-400'} hover:scale-110 transition-transform"></i>
+                    </button>
+                    <div class="flex gap-2">
+                        <a href="${rec.website}" target="_blank" class="bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition inline-flex items-center border border-violet-500 hover:scale-105 transform">
+                            <i class="fas fa-external-link-alt mr-2"></i>Visit Website
+                        </a>
+                        ${rec.trialAvailable ? `
+                            <a href="${rec.website}" target="_blank" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition inline-flex items-center border border-green-500 hover:scale-105 transform">
+                                <i class="fas fa-play mr-2"></i>Try Free
+                            </a>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
             
