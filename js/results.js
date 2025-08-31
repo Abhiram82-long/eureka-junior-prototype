@@ -1,11 +1,16 @@
 // Enhanced Results page JavaScript for Eureka Juniors
-// Modern ES6+ Implementation with Advanced Animations
+// Modern ES6+ Implementation with Advanced Animations and Performance Optimizations
 
-// Animation Controller for Results Page
+// Performance-optimized Animation Controller for Results Page
 class ResultsAnimationController {
     constructor() {
         this.comparisonMode = false;
         this.selectedTools = new Set();
+        this.animationFrameId = null;
+        this.observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
         this.init();
     }
     
@@ -13,15 +18,39 @@ class ResultsAnimationController {
         this.setupCardAnimations();
         this.setupActionButtons();
         this.setupFavorites();
+        this.setupScrollAnimations();
+        this.setupConfidenceAnimations();
+        this.setupHoverEffects();
     }
     
     
     setupCardAnimations() {
-        // Add hover sound effect (visual feedback)
+        // Enhanced card hover effects with performance optimization
         document.addEventListener('mouseover', (e) => {
             if (e.target.closest('.recommendation-card')) {
                 const card = e.target.closest('.recommendation-card');
-                card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                
+                // Use requestAnimationFrame for smooth animations
+                this.animationFrameId = requestAnimationFrame(() => {
+                    card.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.transform = 'translateY(-8px) scale(1.02)';
+                    card.style.boxShadow = '0 20px 40px rgba(139, 92, 246, 0.25)';
+                    
+                    // Add glow effect
+                    card.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+                });
+            }
+        });
+        
+        document.addEventListener('mouseout', (e) => {
+            if (e.target.closest('.recommendation-card')) {
+                const card = e.target.closest('.recommendation-card');
+                
+                this.animationFrameId = requestAnimationFrame(() => {
+                    card.style.transform = 'translateY(0) scale(1)';
+                    card.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                    card.style.borderColor = 'rgba(75, 85, 99, 0.3)';
+                });
             }
         });
     }
@@ -269,6 +298,76 @@ class ResultsAnimationController {
         });
     }
     
+    // Enhanced scroll animations with intersection observer
+    setupScrollAnimations() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    this.animationFrameId = requestAnimationFrame(() => {
+                        entry.target.classList.add('animate-in');
+                        this.animateConfidenceBar(entry.target);
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, this.observerOptions);
+        
+        document.querySelectorAll('.recommendation-card').forEach(card => {
+            observer.observe(card);
+        });
+    }
+    
+    // Animate confidence bars with smooth transitions
+    setupConfidenceAnimations() {
+        const confidenceBars = document.querySelectorAll('.confidence-bar');
+        confidenceBars.forEach(bar => {
+            const percentage = bar.dataset.confidence;
+            if (percentage) {
+                bar.style.width = '0%';
+                bar.style.transition = 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            }
+        });
+    }
+    
+    animateConfidenceBar(card) {
+        const bar = card.querySelector('.confidence-bar');
+        const percentage = bar?.dataset.confidence;
+        if (bar && percentage) {
+            setTimeout(() => {
+                bar.style.width = `${percentage}%`;
+            }, 300);
+        }
+    }
+    
+    // Enhanced hover effects for interactive elements
+    setupHoverEffects() {
+        // Button hover effects
+        document.querySelectorAll('.btn-enhanced').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = 'translateY(-2px) scale(1.05)';
+                btn.style.boxShadow = '0 10px 20px rgba(139, 92, 246, 0.3)';
+            });
+            
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'translateY(0) scale(1)';
+                btn.style.boxShadow = '';
+            });
+        });
+        
+        // Link hover effects
+        document.querySelectorAll('a[href]').forEach(link => {
+            link.addEventListener('mouseenter', () => {
+                link.style.transform = 'translateX(4px)';
+                link.style.color = '#8b5cf6';
+            });
+            
+            link.addEventListener('mouseleave', () => {
+                link.style.transform = 'translateX(0)';
+                link.style.color = '';
+            });
+        });
+    }
+    
     toggleFavorite(toolName, button) {
         const favorites = JSON.parse(localStorage.getItem('eureka-favorites') || '[]');
         const index = favorites.indexOf(toolName);
@@ -294,39 +393,81 @@ class ResultsAnimationController {
         const notification = document.createElement('div');
         const bgColor = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : type === 'warning' ? 'bg-yellow-600' : 'bg-blue-600';
         const icon = type === 'error' ? 'fa-exclamation-triangle' : type === 'success' ? 'fa-check' : type === 'warning' ? 'fa-exclamation' : 'fa-info-circle';
+        const borderColor = type === 'error' ? 'border-red-500' : type === 'success' ? 'border-green-500' : type === 'warning' ? 'border-yellow-500' : 'border-blue-500';
         
-        notification.className = `notification-toast fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-300`;
+        notification.className = `notification-toast fixed top-20 right-4 px-6 py-4 rounded-lg shadow-2xl z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-500 ease-out border-l-4 ${borderColor}`;
         
         notification.innerHTML = `
             <div class="flex items-center">
-                <i class="fas ${icon} mr-3"></i>
-                <span>${message}</span>
-                <button class="ml-4 text-white hover:text-gray-300" onclick="this.parentElement.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="flex-shrink-0">
+                    <i class="fas ${icon} mr-3 text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="font-medium">${message}</span>
+                </div>
+                <div class="flex-shrink-0">
+                    <button class="ml-4 text-white hover:text-gray-300 transition-colors duration-200" onclick="this.parentElement.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="progress-bar mt-2 h-1 bg-white/20 rounded-full overflow-hidden">
+                <div class="progress-fill h-full bg-white/40 rounded-full transition-all duration-4000 ease-linear" style="width: 100%"></div>
             </div>
         `;
         
         document.body.appendChild(notification);
         
+        // Enhanced entrance animation
         requestAnimationFrame(() => {
             setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
+                notification.style.transform = 'translateX(0) scale(1)';
                 notification.style.opacity = '1';
+                
+                // Start progress bar animation
+                const progressBar = notification.querySelector('.progress-fill');
+                if (progressBar) {
+                    setTimeout(() => {
+                        progressBar.style.width = '0%';
+                    }, 100);
+                }
             }, 100);
         });
         
+        // Auto-dismiss with progress bar
         setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
+            notification.style.transform = 'translateX(100%) scale(0.95)';
             notification.style.opacity = '0';
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.remove();
                 }
-            }, 300);
+            }, 500);
         }, 4000);
         
+        // Add hover pause functionality
+        notification.addEventListener('mouseenter', () => {
+            const progressBar = notification.querySelector('.progress-fill');
+            if (progressBar) {
+                progressBar.style.animationPlayState = 'paused';
+            }
+        });
+        
+        notification.addEventListener('mouseleave', () => {
+            const progressBar = notification.querySelector('.progress-fill');
+            if (progressBar) {
+                progressBar.style.animationPlayState = 'running';
+            }
+        });
+        
         return notification;
+    }
+    
+    // Cleanup method for performance
+    destroy() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+        }
     }
 }
 
@@ -339,6 +480,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     
     loadResults();
+    
+    // Cleanup on page unload for performance
+    window.addEventListener('beforeunload', () => {
+        if (animationController) {
+            animationController.destroy();
+        }
+    });
 });
 
 // Theme Management (Note: theme toggle has been removed, but we maintain theme functionality)
@@ -416,52 +564,72 @@ function displayRecommendations(data) {
         return;
     }
     
-    // Display summary if available
+    // Display summary if available with enhanced animation
     if (data.summary) {
-        container.innerHTML = `
-            <div class="bg-gray-800 border-l-4 border-cyan-500 p-4 mb-6 fade-in">
-                <h3 class="font-semibold text-white mb-2">
-                    <i class="fas fa-info-circle mr-2 text-cyan-400"></i>Summary
-                </h3>
-                <p class="text-gray-300">${data.summary}</p>
-            </div>
+        const summaryElement = document.createElement('div');
+        summaryElement.className = 'bg-gray-800 border-l-4 border-cyan-500 p-4 mb-6 fade-in scroll-reveal';
+        summaryElement.innerHTML = `
+            <h3 class="font-semibold text-white mb-2 stagger-child">
+                <i class="fas fa-info-circle mr-2 text-cyan-400"></i>Summary
+            </h3>
+            <p class="text-gray-300 stagger-child">${data.summary}</p>
         `;
+        container.appendChild(summaryElement);
     }
     
-    // Display each recommendation with staggered animation
+    // Display each recommendation with enhanced staggered animation
     data.recommendations.forEach((rec, index) => {
         const cardHTML = createRecommendationCard(rec, index);
         const cardElement = document.createElement('div');
         cardElement.innerHTML = cardHTML.trim();
         const card = cardElement.firstChild;
+        
+        // Add scroll reveal class for intersection observer
+        card.classList.add('scroll-reveal');
         container.appendChild(card);
 
-        // Use requestAnimationFrame for better performance
+        // Enhanced staggered animation with performance optimization
         setTimeout(() => {
             requestAnimationFrame(() => {
                 card.classList.add('animate-in');
+                
+                // Animate child elements with stagger
+                const staggerElements = card.querySelectorAll('.stagger-child');
+                staggerElements.forEach((element, childIndex) => {
+                    setTimeout(() => {
+                        element.classList.add('animate-in');
+                    }, childIndex * 100);
+                });
+                
                 // Animate the confidence bar for this specific card
                 const bar = card.querySelector('.confidence-bar');
-                const percentage = bar.dataset.confidence;
+                const percentage = bar?.dataset.confidence;
                 if (bar && percentage) {
                     setTimeout(() => {
                         bar.style.width = `${percentage}%`;
-                    }, 300);
+                        bar.style.transition = 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                    }, 500);
                 }
             });
-        }, index * 150);
+        }, index * 200);
     });
     
-    // Display additional notes if available
+    // Display additional notes if available with enhanced animation
     if (data.additionalNotes) {
-        container.innerHTML += `
-            <div class="bg-gray-800 border-l-4 border-yellow-500 p-4 mt-6 fade-in">
-                <h3 class="font-semibold text-white mb-2">
-                    <i class="fas fa-lightbulb mr-2 text-yellow-400"></i>Additional Notes
-                </h3>
-                <p class="text-gray-300">${data.additionalNotes}</p>
-            </div>
+        const notesElement = document.createElement('div');
+        notesElement.className = 'bg-gray-800 border-l-4 border-yellow-500 p-4 mt-6 fade-in scroll-reveal';
+        notesElement.innerHTML = `
+            <h3 class="font-semibold text-white mb-2 stagger-child">
+                <i class="fas fa-lightbulb mr-2 text-yellow-400"></i>Additional Notes
+            </h3>
+            <p class="text-gray-300 stagger-child">${data.additionalNotes}</p>
         `;
+        container.appendChild(notesElement);
+    }
+    
+    // Initialize scroll animations after content is loaded
+    if (window.resultsAnimationController) {
+        window.resultsAnimationController.setupScrollAnimations();
     }
 }
 
@@ -472,37 +640,39 @@ function createRecommendationCard(rec, index) {
     const isFavorite = favorites.includes(rec.name);
     
     return `
-        <div class="recommendation-card bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6" 
+        <div class="recommendation-card bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6 transition-all duration-300 hover:shadow-2xl" 
              onclick="window.resultsAnimationController.selectForComparison(this, '${rec.name}')"
              data-confidence="${rec.confidence}">
             <!-- Header -->
-            <div class="flex justify-between items-start mb-4">
+            <div class="flex justify-between items-start mb-4 stagger-child">
                 <div class="flex-grow">
-                    <div class="flex items-center gap-3 mb-2">
-                        <span class="bg-${rankBadgeColor}-900 text-${rankBadgeColor}-300 px-3 py-1 rounded-full text-sm font-semibold border border-${rankBadgeColor}-600">
+                    <div class="flex items-center gap-3 mb-2 stagger-child">
+                        <span class="bg-${rankBadgeColor}-900 text-${rankBadgeColor}-300 px-3 py-1 rounded-full text-sm font-semibold border border-${rankBadgeColor}-600 transform hover:scale-105 transition-transform">
                             #${rec.rank || index + 1} Recommendation
                         </span>
-                        ${rec.trialAvailable ? '<span class="bg-green-900 text-green-300 px-2 py-1 rounded text-xs font-medium border border-green-600">Free Trial</span>' : ''}
+                        ${rec.trialAvailable ? '<span class="bg-green-900 text-green-300 px-2 py-1 rounded text-xs font-medium border border-green-600 animate-pulse">Free Trial</span>' : ''}
                     </div>
-                    <h2 class="text-2xl font-bold text-white mb-1">${rec.name}</h2>
-                    <p class="text-gray-300">${rec.tagline}</p>
+                    <h2 class="text-2xl font-bold text-white mb-1 stagger-child hover:text-${rankBadgeColor}-300 transition-colors">${rec.name}</h2>
+                    <p class="text-gray-300 stagger-child">${rec.tagline}</p>
                 </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-${confidenceColor}-400">${rec.confidence}%</div>
+                <div class="text-center stagger-child">
+                    <div class="text-2xl font-bold text-${confidenceColor}-400 transform hover:scale-110 transition-transform">${rec.confidence}%</div>
                     <div class="text-xs text-gray-400">Confidence</div>
-                    <div class="w-20 bg-gray-700 rounded-full h-2 mt-1">
-                        <div class="confidence-bar bg-${confidenceColor}-500 h-2 rounded-full" data-confidence="${rec.confidence}"></div>
+                    <div class="w-20 bg-gray-700 rounded-full h-2 mt-1 overflow-hidden">
+                        <div class="confidence-bar bg-gradient-to-r from-${confidenceColor}-500 to-${confidenceColor}-400 h-2 rounded-full relative" data-confidence="${rec.confidence}">
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <!-- Description -->
-            <div class="mb-4">
-                <p class="text-gray-300">${rec.description}</p>
+            <div class="mb-4 stagger-child">
+                <p class="text-gray-300 leading-relaxed">${rec.description}</p>
             </div>
             
             <!-- Why Recommended -->
-            <div class="bg-gray-900 border-l-4 border-violet-500 p-3 mb-4">
+            <div class="bg-gray-900 border-l-4 border-violet-500 p-3 mb-4 stagger-child hover:bg-gray-800 transition-colors">
                 <h3 class="font-semibold text-white mb-1 text-sm">
                     <i class="fas fa-thumbs-up mr-1 text-violet-400"></i>Why This Tool?
                 </h3>
@@ -510,13 +680,13 @@ function createRecommendationCard(rec, index) {
             </div>
             
             <!-- Key Features -->
-            <div class="mb-4">
+            <div class="mb-4 stagger-child">
                 <h3 class="font-semibold text-white mb-2">
                     <i class="fas fa-star text-yellow-400 mr-2"></i>Key Features
                 </h3>
                 <div class="grid md:grid-cols-2 gap-2">
-                    ${rec.keyFeatures.map(feature => `
-                        <div class="flex items-start">
+                    ${rec.keyFeatures.map((feature, featureIndex) => `
+                        <div class="flex items-start transform hover:translate-x-1 transition-transform">
                             <i class="fas fa-check text-green-400 mt-1 mr-2 text-sm"></i>
                             <span class="text-gray-300 text-sm">${feature}</span>
                         </div>
@@ -525,28 +695,28 @@ function createRecommendationCard(rec, index) {
             </div>
             
             <!-- Pros and Cons -->
-            <div class="grid md:grid-cols-2 gap-4 mb-4">
-                <div>
+            <div class="grid md:grid-cols-2 gap-4 mb-4 stagger-child">
+                <div class="transform hover:scale-105 transition-transform">
                     <h3 class="font-semibold text-green-400 mb-2">
                         <i class="fas fa-plus-circle mr-1"></i>Pros
                     </h3>
                     <ul class="space-y-1">
                         ${rec.pros.map(pro => `
-                            <li class="text-sm text-gray-300 flex items-start">
-                                <span class="text-green-400 mr-2">+</span>
+                            <li class="text-sm text-gray-300 flex items-start transform hover:translate-x-1 transition-transform">
+                                <span class="text-green-400 mr-2 font-bold">+</span>
                                 ${pro}
                             </li>
                         `).join('')}
                     </ul>
                 </div>
-                <div>
+                <div class="transform hover:scale-105 transition-transform">
                     <h3 class="font-semibold text-red-400 mb-2">
                         <i class="fas fa-minus-circle mr-1"></i>Cons
                     </h3>
                     <ul class="space-y-1">
                         ${rec.cons.map(con => `
-                            <li class="text-sm text-gray-300 flex items-start">
-                                <span class="text-red-400 mr-2">−</span>
+                            <li class="text-sm text-gray-300 flex items-start transform hover:translate-x-1 transition-transform">
+                                <span class="text-red-400 mr-2 font-bold">−</span>
                                 ${con}
                             </li>
                         `).join('')}
@@ -555,21 +725,21 @@ function createRecommendationCard(rec, index) {
             </div>
             
             <!-- Pricing and Actions -->
-            <div class="border-t border-gray-700 pt-4 flex justify-between items-center">
-                <div>
+            <div class="border-t border-gray-700 pt-4 flex justify-between items-center stagger-child">
+                <div class="transform hover:scale-105 transition-transform">
                     <span class="text-gray-400 text-sm">Pricing:</span>
                     <span class="font-semibold text-white ml-2">${rec.pricing}</span>
                 </div>
                 <div class="flex gap-3 items-center">
-                    <button class="favorite-btn" data-tool="${rec.name}" title="Add to favorites">
-                        <i class="${isFavorite ? 'fas fa-heart text-red-400' : 'far fa-heart text-gray-400'} hover:scale-110 transition-transform"></i>
+                    <button class="favorite-btn btn-enhanced" data-tool="${rec.name}" title="Add to favorites">
+                        <i class="${isFavorite ? 'fas fa-heart text-red-400' : 'far fa-heart text-gray-400'} hover:scale-110 transition-transform duration-200"></i>
                     </button>
                     <div class="flex gap-2">
-                        <a href="${rec.website}" target="_blank" class="bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition inline-flex items-center border border-violet-500 hover:scale-105 transform">
+                        <a href="${rec.website}" target="_blank" class="bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition-all duration-200 inline-flex items-center border border-violet-500 hover:scale-105 transform hover:shadow-lg">
                             <i class="fas fa-external-link-alt mr-2"></i>Visit Website
                         </a>
                         ${rec.trialAvailable ? `
-                            <a href="${rec.website}" target="_blank" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition inline-flex items-center border border-green-500 hover:scale-105 transform">
+                            <a href="${rec.website}" target="_blank" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 inline-flex items-center border border-green-500 hover:scale-105 transform hover:shadow-lg">
                                 <i class="fas fa-play mr-2"></i>Try Free
                             </a>
                         ` : ''}
@@ -579,7 +749,7 @@ function createRecommendationCard(rec, index) {
             
             <!-- Alternatives Note -->
             ${rec.alternativesConsidered ? `
-                <div class="mt-4 text-xs text-gray-400 italic">
+                <div class="mt-4 text-xs text-gray-400 italic stagger-child transform hover:scale-105 transition-transform">
                     <i class="fas fa-info-circle mr-1"></i>
                     Chosen over: ${rec.alternativesConsidered}
                 </div>

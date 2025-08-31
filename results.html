@@ -44,6 +44,8 @@
             transform: translateY(30px) scale(0.95);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid rgba(75, 85, 99, 0.3);
+            position: relative;
+            overflow: hidden;
         }
         
         .recommendation-card.animate-in {
@@ -57,13 +59,33 @@
             border-color: rgba(139, 92, 246, 0.4);
         }
         
-        /* Confidence Bar Animation */
+        .recommendation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(220, 38, 38, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        
+        .recommendation-card:hover::before {
+            opacity: 1;
+        }
+        
+        /* Enhanced Confidence Bar Animation */
         .confidence-bar {
             width: 0;
             transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
             background: linear-gradient(90deg, #dc2626, #f59e0b, #10b981);
+            background-size: 200% 100%;
             position: relative;
             overflow: hidden;
+            animation: progressShimmer 2s ease-in-out infinite;
         }
         
         .confidence-bar::after {
@@ -73,7 +95,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
             animation: shimmer 2s infinite;
         }
         
@@ -82,7 +104,12 @@
             100% { transform: translateX(100%); }
         }
         
-        /* Staggered Fade-in */
+        @keyframes progressShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Enhanced Staggered Fade-in */
         .fade-in {
             opacity: 0;
             transform: translateY(20px);
@@ -94,6 +121,30 @@
         .fade-in-delay-3 { animation-delay: 0.3s; }
         .fade-in-delay-4 { animation-delay: 0.4s; }
         .fade-in-delay-5 { animation-delay: 0.5s; }
+        
+        /* Enhanced Stagger Animations */
+        .stagger-child {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .stagger-child.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Enhanced Scroll Reveal */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
         
         @keyframes fadeInUp {
             to {
@@ -179,6 +230,83 @@
         .comparison-selected {
             border-color: #8b5cf6 !important;
             box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+        }
+        
+        /* Enhanced Button Animations */
+        .btn-enhanced {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-enhanced::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-enhanced:hover::before {
+            left: 100%;
+        }
+        
+        .btn-enhanced:active {
+            transform: scale(0.98);
+        }
+        
+        /* Enhanced Notification Animations */
+        .notification-toast {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        /* Enhanced Comparison Mode */
+        .comparison-mode .recommendation-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .comparison-mode .recommendation-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.2);
+        }
+        
+        .comparison-selected {
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3) !important;
+            transform: translateY(-4px) scale(1.02);
+        }
+        
+        /* Enhanced Loading States */
+        .loading-state {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        /* Enhanced Form Validation */
+        .input-enhanced.valid {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .input-enhanced.invalid {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        /* Enhanced Progress Bar */
+        .progress-fill {
+            background: linear-gradient(90deg, #8b5cf6, #dc2626, #f59e0b);
+            background-size: 200% 100%;
+            animation: progressShimmer 2s ease-in-out infinite;
+        }
+        
+        @keyframes progressShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
     </style>
 </head>
