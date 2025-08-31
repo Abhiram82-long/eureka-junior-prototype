@@ -37,8 +37,6 @@ Eureka Juniors solves the problem of finding the right tool for specific tasks b
   - Additional requirements field
 - **Modern, responsive design** with enhanced animations
 - **Quick Start Examples** for common use cases
-- **Dark/Light theme toggle** with smooth transitions
-- **Progressive Web App (PWA)** capabilities
 - **Keyboard shortcuts** (Ctrl+Enter to submit)
 - **Electric violet, red, green, cyan, and yellow accent colors** for visual hierarchy
 
@@ -54,14 +52,13 @@ Eureka Juniors solves the problem of finding the right tool for specific tasks b
   - Direct links to tool websites
   - Why each tool was recommended
 - **Interactive Features**:
-  - **Favorites system** with local storage
-  - **Tool comparison mode** (select up to 3 tools)
-  - **Export functionality** (JSON format)
+  - **Favorites system** with `localStorage` to save preferred tools.
+  - **Tool comparison mode** to select and view up to 3 tools side-by-side.
+  - **Export functionality** to download recommendations as a JSON file.
   - **Floating action buttons** for quick navigation
 - **Advanced UI Elements**:
-  - **Notification system** for user feedback
-  - **Theme toggle** consistency across pages
-  - **Query details summary** with fade-in effects
+  - **Dynamic notification system** for user feedback (e.g., success, error messages).
+  - **Query details summary** that displays the user's search criteria on the results page.
 
 ### 3. Methodology Page (methodology.html)
 - **Transparent explanation** of recommendation process
@@ -80,6 +77,11 @@ Eureka Juniors solves the problem of finding the right tool for specific tasks b
 - **Intelligent matching** based on multiple criteria
 - **Structured JSON responses** for consistent formatting
 
+### 5. Caching & Offline Capabilities
+- **Progressive Web App (PWA)** ready for installation on supported devices for an app-like experience.
+- **Service Worker** for basic offline support, allowing access to cached pages.
+- **Session-based caching** for API responses to prevent redundant calls during a single session.
+
 ## 📍 Functional Entry Points
 
 ### Main Pages:
@@ -95,45 +97,40 @@ Eureka Juniors solves the problem of finding the right tool for specific tasks b
 - `/js/main.js` - Handles search form, API calls, and navigation
 - `/js/results.js` - Manages results display and export functionality
 
-## 🔮 Features Not Yet Implemented
+## 🔮 Future Development Roadmap
 
-These features are planned for future development:
+The following features are planned for future versions to enhance the platform:
 
-1. **User accounts and saved searches**
-2. **Comparison tool** for side-by-side analysis
-3. **Human expert validation** for high-value queries
-4. **Sandboxed benchmarks** for performance testing
-5. **Enterprise procurement support**
-6. **Affiliate/referral integration**
-7. **Advanced filtering and sorting** on results page
-8. **Feedback and rating system** for recommendations
-9. **API rate limiting and error handling improvements**
-10. **Offline mode with cached recommendations**
+1. **User Accounts**: To save search history, manage favorites across devices, and set preferences.
+2. **Advanced Filtering & Sorting**: Allow users to sort results by confidence, price, or other criteria, and apply advanced filters.
+3. **Enhanced Offline Mode**: Improve the service worker to cache API results, enabling full offline access to previous searches.
+4. **Feedback & Rating System**: Allow users to rate the quality of recommendations to fine-tune the AI model.
+5. **Human Expert Validation**: Introduce an optional "expert review" for high-stakes or enterprise-level queries.
+6. **Sandboxed Benchmarks**: For certain software categories, provide performance benchmarks in a sandboxed environment.
+7. **Enterprise & Procurement Support**: Features tailored for business users, including team collaboration and procurement workflows.
+8. **Affiliate/Referral Integration**: To support the platform's development and offer users potential discounts.
 
 ## 💡 Recommended Next Steps
 
-1. **Enhance Error Handling**:
-   - Add retry logic for API failures.
-   - Implement graceful degradation for cases where the API is unavailable.
+1. **Enhance Comparison Tool**:
+   - Allow comparison of more than 3 tools.
+   - Add more detailed comparison metrics and visualizations.
 
-2. **Improve Performance**:
-   - Further optimize API calls by reducing payload size or complexity.
-   - Investigate options for pre-warming or caching common query results on a backend layer.
+2. **Improve Error Handling & Rate Limiting**:
+   - Implement client-side rate limiting to prevent API abuse.
+   - Add retry logic for failed API requests, potentially using the service worker's background sync capabilities.
 
-3. **Add Analytics**:
-   - Track search patterns
-   - Monitor recommendation accuracy
-   - Collect user feedback
+3. **Performance Optimization**:
+   - Implement a more robust caching strategy for API results beyond the current session-based approach.
+   - Further optimize assets and rendering for faster load times.
 
-4. **Expand Database**:
-   - Build knowledge graph of tools
-   - Add more categories and use cases
-   - Include user reviews and ratings
+4. **Analytics & User Feedback**:
+   - Integrate a privacy-respecting analytics tool to understand user behavior and improve the service.
+   - Implement a simple feedback mechanism on the results page.
 
-5. **Mobile Optimization**:
-   - Create mobile-specific layouts
-   - Add touch gestures
-   - Optimize for slower connections
+5. **Mobile & Accessibility Enhancements**:
+   - Conduct thorough testing on various mobile devices to refine the user experience.
+   - Improve accessibility by ensuring compliance with WCAG standards.
 
 ## 🛠️ Technical Stack
 
@@ -143,7 +140,7 @@ These features are planned for future development:
   - Tailwind CSS (via CDN)
   - Font Awesome Icons
   - Google Fonts (Inter)
-- **Storage**: SessionStorage for temporary data
+- **Storage**: `sessionStorage` for API key and temporary data, `localStorage` for user favorites.
 - **Deployment**: Static website hosting
 
 ## 📊 Data Models
