@@ -2,7 +2,10 @@
 // Modern ES6+ Implementation with Advanced Animations and Performance Optimizations
 
 // API Configuration
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+//gemini 2.5 flash
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+//gemini 2.5 flash lite
+//const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
 // Performance-optimized Animation Controller
 class AnimationController {
