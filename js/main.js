@@ -1,16 +1,17 @@
 // Enhanced Main JavaScript for Eureka Juniors
-// Modern ES6+ Implementation with Advanced Animations
+// Modern ES6+ Implementation with Advanced Animations and Performance Optimizations
 
 // API Configuration
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
-// Animation and UX Controller
+// Performance-optimized Animation Controller
 class AnimationController {
     constructor() {
         this.observerOptions = {
-            threshold: 0.2,
+            threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
+        this.animationFrameId = null;
         this.init();
     }
     
@@ -18,14 +19,21 @@ class AnimationController {
         this.setupScrollReveal();
         this.setupTypewriter();
         this.setupFormAnimations();
+        this.setupParticleEffects();
+        this.setupSmoothScrolling();
+        this.setupParallaxEffects();
     }
     
-    // Scroll-triggered animations
+    // Enhanced scroll-triggered animations with performance optimization
     setupScrollReveal() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('revealed');
+                    // Use requestAnimationFrame for smooth animations
+                    this.animationFrameId = requestAnimationFrame(() => {
+                        entry.target.classList.add('revealed');
+                        this.addStaggeredAnimation(entry.target);
+                    });
                     observer.unobserve(entry.target);
                 }
             });
@@ -36,12 +44,23 @@ class AnimationController {
         });
     }
     
-    // Typewriter effect
+    // Add staggered animation to child elements
+    addStaggeredAnimation(parent) {
+        const children = parent.querySelectorAll('.stagger-child');
+        children.forEach((child, index) => {
+            setTimeout(() => {
+                child.classList.add('animate-in');
+            }, index * 100);
+        });
+    }
+    
+    // Enhanced typewriter effect with cursor animation
     setupTypewriter() {
         const typewriterEl = document.querySelector('.typewriter');
         if (typewriterEl) {
             const text = typewriterEl.textContent;
             typewriterEl.textContent = '';
+            typewriterEl.style.borderRight = '3px solid #8b5cf6';
             
             setTimeout(() => {
                 let i = 0;
@@ -49,27 +68,58 @@ class AnimationController {
                     if (i < text.length) {
                         typewriterEl.textContent += text.charAt(i);
                         i++;
+                        // Add typing sound effect (visual feedback)
+                        typewriterEl.style.transform = 'scale(1.02)';
+                        setTimeout(() => {
+                            typewriterEl.style.transform = 'scale(1)';
+                        }, 50);
                     } else {
                         clearInterval(typing);
+                        typewriterEl.style.borderRight = 'none';
                     }
-                }, 80);
+                }, 60);
             }, 1000);
         }
     }
     
-    // Form animations with performance optimization
+    // Enhanced form animations with micro-interactions
     setupFormAnimations() {
         const inputs = document.querySelectorAll('.input-enhanced');
         inputs.forEach(input => {
+            // Add floating label effect
+            const label = input.previousElementSibling;
+            if (label && label.classList.contains('label-enhanced')) {
+                input.addEventListener('focus', () => {
+                    label.style.transform = 'translateY(-20px) scale(0.85)';
+                    label.style.color = '#8b5cf6';
+                });
+                
+                input.addEventListener('blur', () => {
+                    if (!input.value) {
+                        label.style.transform = 'translateY(0) scale(1)';
+                        label.style.color = '#9ca3af';
+                    }
+                });
+            }
+            
+            // Enhanced focus effects
             input.addEventListener('focus', (e) => {
                 requestAnimationFrame(() => {
-                    e.target.parentElement.style.transform = 'translateY(-2px)';
+                    e.target.parentElement.style.transform = 'translateY(-3px)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
                 });
             });
+            
             input.addEventListener('blur', (e) => {
                 requestAnimationFrame(() => {
                     e.target.parentElement.style.transform = '';
+                    e.target.style.boxShadow = '';
                 });
+            });
+            
+            // Real-time validation feedback
+            input.addEventListener('input', (e) => {
+                this.validateInput(e.target);
             });
         });
     }
@@ -79,13 +129,164 @@ class AnimationController {
         const loading = document.getElementById('loadingState');
         
         if (form && loading) {
-            form.style.transform = 'translateY(-20px)';
+            // Smooth form transition
+            form.style.transform = 'translateY(-20px) scale(0.95)';
             form.style.opacity = '0';
             
             setTimeout(() => {
                 form.style.display = 'none';
                 loading.classList.remove('hidden');
+                
+                // Start progress animation
+                this.startProgressAnimation();
             }, 300);
+        }
+    }
+    
+    startProgressAnimation() {
+        const progressBar = document.querySelector('.progress-fill');
+        const loadingStep = document.getElementById('loadingStep');
+        const steps = [
+            'Initializing AI analysis...',
+            'Processing your requirements...',
+            'Searching for relevant tools...',
+            'Analyzing tool capabilities...',
+            'Generating recommendations...',
+            'Finalizing results...'
+        ];
+        
+        if (progressBar) {
+            progressBar.style.width = '0%';
+            setTimeout(() => {
+                progressBar.style.width = '100%';
+            }, 100);
+        }
+        
+        // Animate loading steps
+        if (loadingStep) {
+            let stepIndex = 0;
+            const stepInterval = setInterval(() => {
+                if (stepIndex < steps.length) {
+                    loadingStep.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingStep.textContent = steps[stepIndex];
+                        loadingStep.style.opacity = '1';
+                        stepIndex++;
+                    }, 200);
+                } else {
+                    clearInterval(stepInterval);
+                }
+            }, 1500);
+        }
+    }
+    
+    // Input validation with visual feedback
+    validateInput(input) {
+        const value = input.value.trim();
+        const isValid = value.length > 0;
+        
+        if (isValid) {
+            input.classList.add('valid');
+            input.classList.remove('invalid');
+            this.showValidationIcon(input, 'check', 'green');
+        } else {
+            input.classList.remove('valid');
+            input.classList.add('invalid');
+            this.showValidationIcon(input, 'times', 'red');
+        }
+    }
+    
+    showValidationIcon(input, icon, color) {
+        let iconElement = input.parentElement.querySelector('.validation-icon');
+        if (!iconElement) {
+            iconElement = document.createElement('i');
+            iconElement.className = 'validation-icon fas fa-' + icon + ' absolute right-3 top-1/2 transform -translate-y-1/2 text-' + color + '-400';
+            input.parentElement.style.position = 'relative';
+            input.parentElement.appendChild(iconElement);
+        } else {
+            iconElement.className = 'validation-icon fas fa-' + icon + ' absolute right-3 top-1/2 transform -translate-y-1/2 text-' + color + '-400';
+        }
+    }
+    
+    // Add particle effects for enhanced visual appeal
+    setupParticleEffects() {
+        const particleContainer = document.createElement('div');
+        particleContainer.className = 'particle-container fixed inset-0 pointer-events-none z-0';
+        particleContainer.innerHTML = Array.from({length: 20}, () => 
+            '<div class="particle absolute w-1 h-1 bg-white/20 rounded-full"></div>'
+        ).join('');
+        
+        document.body.appendChild(particleContainer);
+        
+        // Animate particles
+        const particles = particleContainer.querySelectorAll('.particle');
+        particles.forEach((particle, index) => {
+            this.animateParticle(particle, index);
+        });
+    }
+    
+    animateParticle(particle, index) {
+        const duration = 8000 + Math.random() * 4000;
+        const delay = index * 200;
+        
+        particle.style.animation = `float ${duration}ms ease-in-out ${delay}ms infinite`;
+        
+        // Add CSS animation
+        if (!document.querySelector('#particle-animations')) {
+            const style = document.createElement('style');
+            style.id = 'particle-animations';
+            style.textContent = `
+                @keyframes float {
+                    0%, 100% { 
+                        transform: translateY(100vh) translateX(${Math.random() * 100}vw) rotate(0deg);
+                        opacity: 0;
+                    }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { 
+                        transform: translateY(-100px) translateX(${Math.random() * 100}vw) rotate(360deg);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+    
+    // Smooth scrolling for better UX
+    setupSmoothScrolling() {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    }
+    
+    // Parallax effects for depth
+    setupParallaxEffects() {
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallaxElements = document.querySelectorAll('.parallax');
+            
+            parallaxElements.forEach(element => {
+                const speed = element.dataset.speed || 0.5;
+                const yPos = -(scrolled * speed);
+                element.style.transform = `translateY(${yPos}px)`;
+            });
+        });
+    }
+    
+    // Cleanup method for performance
+    destroy() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
         }
     }
 }
@@ -238,6 +439,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (submitBtn && !submitBtn.disabled) {
                 submitBtn.click();
             }
+        }
+    });
+    
+    // Cleanup on page unload for performance
+    window.addEventListener('beforeunload', () => {
+        if (animationController) {
+            animationController.destroy();
         }
     });
     
@@ -399,46 +607,81 @@ async function getRecommendations(prompt) {
     }
 }
 
-// Enhanced notification system
+// Enhanced notification system with advanced animations
 function showNotification(message, type = 'info') {
     // Remove existing notifications to prevent stacking
     const existingNotifications = document.querySelectorAll('.notification-toast');
     existingNotifications.forEach(notif => notif.remove());
     
     const notification = document.createElement('div');
-    const bgColor = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-blue-600';
-    const icon = type === 'error' ? 'fa-exclamation-triangle' : type === 'success' ? 'fa-check' : 'fa-info-circle';
+    const bgColor = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : type === 'warning' ? 'bg-yellow-600' : 'bg-blue-600';
+    const icon = type === 'error' ? 'fa-exclamation-triangle' : type === 'success' ? 'fa-check' : type === 'warning' ? 'fa-exclamation' : 'fa-info-circle';
+    const borderColor = type === 'error' ? 'border-red-500' : type === 'success' ? 'border-green-500' : type === 'warning' ? 'border-yellow-500' : 'border-blue-500';
     
-    notification.className = `notification-toast fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-300`;
+    notification.className = `notification-toast fixed top-20 right-4 px-6 py-4 rounded-lg shadow-2xl z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-500 ease-out border-l-4 ${borderColor}`;
     
     notification.innerHTML = `
         <div class="flex items-center">
-            <i class="fas ${icon} mr-3"></i>
-            <span>${message}</span>
-            <button class="ml-4 text-white hover:text-gray-300" onclick="this.parentElement.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>
+            <div class="flex-shrink-0">
+                <i class="fas ${icon} mr-3 text-lg"></i>
+            </div>
+            <div class="flex-1">
+                <span class="font-medium">${message}</span>
+            </div>
+            <div class="flex-shrink-0">
+                <button class="ml-4 text-white hover:text-gray-300 transition-colors duration-200" onclick="this.parentElement.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="progress-bar mt-2 h-1 bg-white/20 rounded-full overflow-hidden">
+            <div class="progress-fill h-full bg-white/40 rounded-full transition-all duration-5000 ease-linear" style="width: 100%"></div>
         </div>
     `;
     
     document.body.appendChild(notification);
     
+    // Enhanced entrance animation
     requestAnimationFrame(() => {
         setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
+            notification.style.transform = 'translateX(0) scale(1)';
             notification.style.opacity = '1';
+            
+            // Start progress bar animation
+            const progressBar = notification.querySelector('.progress-fill');
+            if (progressBar) {
+                setTimeout(() => {
+                    progressBar.style.width = '0%';
+                }, 100);
+            }
         }, 100);
     });
     
+    // Auto-dismiss with progress bar
     setTimeout(() => {
-        notification.style.transform = 'translateX(100%)';
+        notification.style.transform = 'translateX(100%) scale(0.95)';
         notification.style.opacity = '0';
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.remove();
             }
-        }, 300);
+        }, 500);
     }, 5000);
+    
+    // Add hover pause functionality
+    notification.addEventListener('mouseenter', () => {
+        const progressBar = notification.querySelector('.progress-fill');
+        if (progressBar) {
+            progressBar.style.animationPlayState = 'paused';
+        }
+    });
+    
+    notification.addEventListener('mouseleave', () => {
+        const progressBar = notification.querySelector('.progress-fill');
+        if (progressBar) {
+            progressBar.style.animationPlayState = 'running';
+        }
+    });
 }
 
 // Quick Examples functionality
