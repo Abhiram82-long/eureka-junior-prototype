@@ -627,29 +627,17 @@ async function getRecommendations(prompt) {
         ]
     };
     
-    try {
-        const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error Response:', errorText);
-            
-            if (response.status === 429) {
-                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
-            } else if (response.status === 403) {
-                throw new Error('Invalid API key. Please check your Gemini API key.');
-            } else if (response.status === 400) {
-                throw new Error('Invalid request. Please check your input and try again.');
-            } else {
-                throw new Error(`API request failed: ${response.status} - ${response.statusText}`);
-            }
-        }
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+    }
     
     const data = await response.json();
     
@@ -676,57 +664,12 @@ async function getRecommendations(prompt) {
     } catch (e) {
         console.error('Failed to parse JSON response:', e);
         console.error('Raw response text:', text);
-        
-        // Try to extract any useful information from the response
-        const lines = text.split('\n');
-        const recommendations = [];
-        
-        // Attempt basic parsing for common patterns
-        if (text.includes('1.') || text.includes('1)')) {
-            // Try to parse numbered list format
-            const matches = text.match(/\d+[.)].+?(?=\d+[.)]|$)/gs);
-            if (matches && matches.length > 0) {
-                matches.forEach((match, index) => {
-                    const nameMatch = match.match(/[*_]?([A-Z][\w\s]+)[*_]?/); 
-                    if (nameMatch) {
-                        recommendations.push({
-                            rank: index + 1,
-                            name: nameMatch[1].trim(),
-                            tagline: 'Tool recommendation',
-                            description: match,
-                            website: '#',
-                            pricing: 'Check website',
-                            trialAvailable: false,
-                            pros: ['Recommended for your use case'],
-                            cons: ['Details not fully parsed'],
-                            confidence: 70,
-                            reasoning: 'Recommended based on your requirements',
-                            keyFeatures: ['Matches your criteria'],
-                            alternativesConsidered: ''
-                        });
-                    }
-                });
-            }
-        }
-        
-        if (recommendations.length > 0) {
-            return {
-                recommendations,
-                summary: "Successfully found recommendations but had issues parsing the full details. Please review the tools below.",
-                additionalNotes: "Some details may be incomplete. Visit the tool websites for complete information."
-            };
-        }
-        
         // Return a fallback structure
         return {
             recommendations: [],
-            summary: "Failed to parse recommendations. The AI response was not in the expected format.",
-            additionalNotes: "Please try again or refine your search criteria. If the problem persists, check your API key and internet connection."
+            summary: "Failed to parse recommendations. Please try again.",
+            additionalNotes: "There was an issue processing the AI response. Please verify your internet connection and try again."
         };
-    }
-    } catch (networkError) {
-        console.error('Network error:', networkError);
-        throw new Error(`Network error: ${networkError.message}. Please check your internet connection.`);
     }
 }
 
