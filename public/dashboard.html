@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Eureka Juniors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #8b5cf6 0%, #dc2626 50%, #f59e0b 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease-in-out infinite;
+        }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .glass-effect {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Navigation -->
+    <nav class="glass-effect border-b border-purple-500/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-white">Eureka Juniors</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-300" id="username"></span>
+                    <button id="logoutBtn" class="text-gray-300 hover:text-white transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome Section -->
+        <div class="glass-effect rounded-2xl p-6 mb-8">
+            <h2 class="text-3xl font-bold text-white mb-2">Welcome back!</h2>
+            <p class="text-gray-300">Manage your tool recommendations and track your activity.</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass-effect rounded-xl p-6 card-hover">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-500/20 rounded-lg">
+                        <i class="fas fa-search text-2xl text-purple-400"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-white">New Search</h3>
+                        <p class="text-gray-400 text-sm">Find tools for your needs</p>
+                    </div>
+                </div>
+                <button onclick="window.location.href='/'" class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors">
+                    Start Searching
+                </button>
+            </div>
+
+            <div class="glass-effect rounded-xl p-6 card-hover">
+                <div class="flex items-center">
+                    <div class="p-3 bg-red-500/20 rounded-lg">
+                        <i class="fas fa-history text-2xl text-red-400"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-white">Search History</h3>
+                        <p class="text-gray-400 text-sm">View past searches</p>
+                    </div>
+                </div>
+                <button onclick="loadSearchHistory()" class="w-full mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors">
+                    View History
+                </button>
+            </div>
+
+            <div class="glass-effect rounded-xl p-6 card-hover">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-500/20 rounded-lg">
+                        <i class="fas fa-chart-line text-2xl text-yellow-400"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-white">Activity</h3>
+                        <p class="text-gray-400 text-sm">Track your usage</p>
+                    </div>
+                </div>
+                <button onclick="loadActivity()" class="w-full mt-4 bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg transition-colors">
+                    View Activity
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Search History -->
+            <div class="lg:col-span-2">
+                <div class="glass-effect rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold text-white">Recent Searches</h3>
+                        <button onclick="loadSearchHistory()" class="text-purple-400 hover:text-purple-300 transition-colors">
+                            View All
+                        </button>
+                    </div>
+                    <div id="searchHistory" class="space-y-4">
+                        <div class="text-center py-8">
+                            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                            <p class="text-gray-400 mt-2">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Chart -->
+            <div class="lg:col-span-1">
+                <div class="glass-effect rounded-2xl p-6">
+                    <h3 class="text-xl font-semibold text-white mb-6">Daily Activity</h3>
+                    <canvas id="activityChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search History Modal -->
+        <div id="historyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="glass-effect rounded-2xl p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-semibold text-white">Search History</h3>
+                        <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div id="fullSearchHistory" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+        let username = localStorage.getItem('username');
+
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        document.getElementById('username').textContent = username;
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = '/login';
+        });
+
+        // Load initial data
+        loadRecentSearches();
+        loadActivityChart();
+
+        async function loadRecentSearches() {
+            try {
+                const response = await fetch('/api/search-history?limit=5', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const searches = await response.json();
+                    displaySearchHistory(searches, 'searchHistory');
+                }
+            } catch (error) {
+                console.error('Error loading search history:', error);
+            }
+        }
+
+        async function loadSearchHistory() {
+            try {
+                const response = await fetch('/api/search-history', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const searches = await response.json();
+                    displaySearchHistory(searches, 'fullSearchHistory');
+                    document.getElementById('historyModal').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading search history:', error);
+            }
+        }
+
+        function displaySearchHistory(searches, containerId) {
+            const container = document.getElementById(containerId);
+            
+            if (searches.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-400">No searches yet. Start your first search!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = searches.map(search => `
+                <div class="glass-effect rounded-lg p-4 border border-purple-500/20">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h4 class="text-white font-medium mb-2">${search.use_case}</h4>
+                            <div class="flex flex-wrap gap-2 text-sm">
+                                ${search.budget ? `<span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded">${search.budget}</span>` : ''}
+                                ${search.category ? `<span class="bg-red-500/20 text-red-300 px-2 py-1 rounded">${search.category}</span>` : ''}
+                                ${search.platform ? `<span class="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded">${search.platform}</span>` : ''}
+                            </div>
+                            ${search.additional ? `<p class="text-gray-400 text-sm mt-2">${search.additional}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <p class="text-gray-400 text-sm">${new Date(search.search_date).toLocaleDateString()}</p>
+                            <p class="text-gray-400 text-xs">${new Date(search.search_date).toLocaleTimeString()}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.add('hidden');
+        }
+
+        async function loadActivity() {
+            loadActivityChart();
+        }
+
+        async function loadActivityChart() {
+            try {
+                const response = await fetch('/api/daily-activity?days=7', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const activity = await response.json();
+                    createActivityChart(activity);
+                }
+            } catch (error) {
+                console.error('Error loading activity:', error);
+            }
+        }
+
+        function createActivityChart(activity) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window.activityChart) {
+                window.activityChart.destroy();
+            }
+
+            const labels = activity.map(item => new Date(item.activity_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })).reverse();
+            const data = activity.map(item => item.search_count).reverse();
+
+            window.activityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Searches',
+                        data: data,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(156, 163, 175, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(156, 163, 175, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('historyModal').addEventListener('click', (e) => {
+            if (e.target.id === 'historyModal') {
+                closeHistoryModal();
+            }
+        });
+    </script>
+</body>
+</html>

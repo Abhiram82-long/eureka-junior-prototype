@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eureka Juniors - Smart Tool Recommendations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Page Transition Animations */
+        .page-transition {
+            opacity: 0;
+            animation: pageEnter 1s ease-out forwards;
+        }
+        
+        @keyframes pageEnter {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Enhanced Gradient Background */
+        .gradient-bg {
+            background: linear-gradient(135deg, #8b5cf6 0%, #dc2626 50%, #f59e0b 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease-in-out infinite;
+            position: relative;
+        }
+        
+        .gradient-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 70%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 30%, rgba(220, 38, 38, 0.3) 0%, transparent 50%);
+            animation: floatingOrbs 12s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes floatingOrbs {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(20px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+        
+        /* Glass Effect Enhancement */
+        .glass-effect {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-effect:hover {
+            border-color: rgba(139, 92, 246, 0.2);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.1);
+        }
+        
+        /* Enhanced Loading Animations */
+        .loading-spinner {
+            border: 3px solid rgba(55, 65, 81, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #8b5cf6;
+            border-right: 3px solid #dc2626;
+            width: 50px;
+            height: 50px;
+            animation: spinGradient 1.2s linear infinite;
+            position: relative;
+        }
+        
+        .loading-spinner::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+            animation: spinGradient 2s linear infinite reverse;
+        }
+        
+        @keyframes spinGradient {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Advanced Progress Indicator */
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.3);
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+        
+        .progress-dot:nth-child(2) { animation-delay: 0.3s; }
+        .progress-dot:nth-child(3) { animation-delay: 0.6s; }
+        .progress-dot:nth-child(4) { animation-delay: 0.9s; }
+        
+        @keyframes dotPulse {
+            0%, 100% {
+                background: rgba(139, 92, 246, 0.3);
+                transform: scale(1);
+            }
+            50% {
+                background: #8b5cf6;
+                transform: scale(1.3);
+            }
+        }
+        
+        /* Typewriter Effect */
+        .typewriter {
+            overflow: hidden;
+            border-right: 3px solid #8b5cf6;
+            white-space: nowrap;
+            animation: typewriter 3s steps(40) 1s forwards,
+                       blinkCursor 1s step-end infinite 4s;
+            width: 0;
+        }
+        
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blinkCursor {
+            50% { border-color: transparent; }
+        }
+        
+        /* Staggered Fade-in Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        
+        .fade-in-delay-1 { animation-delay: 0.2s; }
+        .fade-in-delay-2 { animation-delay: 0.4s; }
+        .fade-in-delay-3 { animation-delay: 0.6s; }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Micro-interactions for Form Elements */
+        .form-group {
+            transition: transform 0.2s ease;
+        }
+        
+        .form-group:hover {
+            transform: translateY(-2px);
+        }
+        
+        .input-enhanced {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .input-enhanced:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+        }
+        
+        .input-enhanced:focus + .input-glow {
+            opacity: 1;
+        }
+        
+        /* Button Enhancements */
+        .btn-enhanced {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-enhanced::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-enhanced:hover::before {
+            left: 100%;
+        }
+        
+        .btn-enhanced:active {
+            transform: scale(0.98);
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .ripple:active::after {
+            width: 300px;
+            height: 300px;
+        }
+        
+        /* Navigation Animation */
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #8b5cf6, #dc2626);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        /* Scroll Reveal Animations */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Floating Animation for Icons */
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Enhanced Form Labels */
+        .label-enhanced {
+            transition: all 0.3s ease;
+        }
+        
+        .label-enhanced:hover {
+            transform: translateX(4px);
+        }
+        
+        /* Success Animation */
+        .success-pulse {
+            animation: successPulse 0.6s ease-out;
+        }
+        
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Enhanced Stagger Animations */
+        .stagger-child {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .stagger-child.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Enhanced Form Validation */
+        .input-enhanced.valid {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .input-enhanced.invalid {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        /* Enhanced Card Hover Effects */
+        .recommendation-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .recommendation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(220, 38, 38, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        
+        .recommendation-card:hover::before {
+            opacity: 1;
+        }
+        
+        /* Enhanced Progress Bar */
+        .progress-fill {
+            background: linear-gradient(90deg, #8b5cf6, #dc2626, #f59e0b);
+            background-size: 200% 100%;
+            animation: progressShimmer 2s ease-in-out infinite;
+        }
+        
+        @keyframes progressShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Enhanced Notification Animations */
+        .notification-toast {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        /* Enhanced Parallax Effects */
+        .parallax {
+            will-change: transform;
+        }
+        
+        /* Enhanced Loading States */
+        .loading-state {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+
+        
+        /* Loading Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(55, 65, 81, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #dc2626, #f59e0b);
+            border-radius: 2px;
+            animation: progressFill 3s ease-in-out infinite;
+        }
+        
+        @keyframes progressFill {
+            0% { width: 0%; transform: translateX(-100%); }
+            50% { width: 100%; transform: translateX(0%); }
+            100% { width: 100%; transform: translateX(100%); }
+        }
+        
+        /* Dark/Light Theme Variables */
+        :root {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-tertiary: #374151;
+            --text-primary: #ffffff;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #374151;
+            --text-tertiary: #6b7280;
+        }
+        
+        /* Install PWA Prompt */
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #8b5cf6, #dc2626);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 90vw;
+        }
+        
+        .install-prompt.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .install-prompt button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin-left: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .install-prompt button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+    </style>
+</head>
+<body class="bg-gray-900 page-transition">
+    <!-- Navigation -->
+    <nav class="glass-effect border-b border-gray-700 fixed w-full top-0 z-50 fade-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <i class="fas fa-lightbulb text-2xl text-violet-400 float"></i>
+                        <span class="font-bold text-xl text-white">Eureka Juniors</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <a href="index.html" class="nav-link text-gray-300 hover:text-violet-400 font-medium transition">Home</a>
+                    <a href="methodology.html" class="nav-link text-gray-300 hover:text-violet-400 font-medium transition">Methodology</a>
+                    <div id="authLinks" class="flex items-center space-x-4">
+                        <a href="/login" class="nav-link text-gray-300 hover:text-violet-400 font-medium transition">Login</a>
+                        <a href="/dashboard" class="nav-link text-gray-300 hover:text-violet-400 font-medium transition hidden" id="dashboardLink">Dashboard</a>
+                        <button id="logoutBtn" class="nav-link text-gray-300 hover:text-violet-400 font-medium transition hidden">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white pt-32 pb-20 px-4 scroll-reveal">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-5xl font-bold mb-6 fade-in typewriter">Find the Perfect Tool for Your Task</h1>
+            <p class="text-xl mb-2 opacity-90 fade-in fade-in-delay-1">
+                Trust-first, use-case driven recommendations for students, researchers, and knowledge workers
+            </p>
+            <p class="text-lg opacity-80 fade-in fade-in-delay-2">
+                Save time, reduce wasted spend, and get evidence-backed recommendations
+            </p>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="max-w-4xl mx-auto px-4 -mt-10 mb-16 scroll-reveal">
+        <div class="glass-effect rounded-2xl shadow-xl p-8 fade-in fade-in-delay-3">
+            <form id="searchForm" class="space-y-6">
+                <!-- API Key Input -->
+                <div class="form-group">
+                    <label for="apiKey" class="label-enhanced block text-sm font-semibold text-white mb-2">
+                        <i class="fas fa-key mr-2 text-yellow-400"></i>Your Gemini API Key
+                    </label>
+                    <input
+                        type="password"
+                        id="apiKey"
+                        class="input-enhanced w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 placeholder-gray-400"
+                        placeholder="Enter your Gemini API key"
+                        required
+                    >
+                    <p class="text-xs text-gray-400 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>Your key is stored only in your browser session and is required to make requests.
+                    </p>
+                </div>
+
+                <!-- Use Case Description -->
+                <div class="form-group">
+                    <label for="useCase" class="label-enhanced block text-sm font-semibold text-white mb-2">
+                        <i class="fas fa-tasks mr-2 text-violet-400"></i>Describe Your Task or Need
+                    </label>
+                    <textarea 
+                        id="useCase" 
+                        rows="4" 
+                        class="input-enhanced w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 resize-none placeholder-gray-400"
+                        placeholder="Example: I need a tool to transcribe audio interviews for my research project. The audio files are in multiple languages and I need accurate timestamps..."
+                        required
+                    ></textarea>
+                </div>
+
+                <!-- Constraints Grid -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Budget -->
+                    <div class="form-group">
+                        <label for="budget" class="label-enhanced block text-sm font-semibold text-white mb-2">
+                            <i class="fas fa-dollar-sign mr-2 text-green-400"></i>Budget Range
+                        </label>
+                        <select id="budget" class="input-enhanced w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="free">Free only</option>
+                            <option value="under20">Under $20/month</option>
+                            <option value="under50">Under $50/month</option>
+                            <option value="under100">Under $100/month</option>
+                            <option value="flexible">Flexible budget</option>
+                        </select>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="form-group">
+                        <label for="category" class="label-enhanced block text-sm font-semibold text-white mb-2">
+                            <i class="fas fa-layer-group mr-2 text-cyan-400"></i>Category
+                        </label>
+                        <select id="category" class="input-enhanced w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+                            <option value="any">Any category</option>
+                            <option value="ai-writing">AI Writing Tools</option>
+                            <option value="research">Research & Academia</option>
+                            <option value="data-analysis">Data Analysis</option>
+                            <option value="productivity">Productivity</option>
+                            <option value="design">Design & Creative</option>
+                            <option value="development">Development Tools</option>
+                            <option value="collaboration">Collaboration</option>
+                            <option value="audio-video">Audio & Video</option>
+                        </select>
+                    </div>
+
+                    <!-- Platform -->
+                    <div class="form-group">
+                        <label for="platform" class="label-enhanced block text-sm font-semibold text-white mb-2">
+                            <i class="fas fa-laptop mr-2 text-yellow-400"></i>Platform
+                        </label>
+                        <select id="platform" class="input-enhanced w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                            <option value="any">Any platform</option>
+                            <option value="web">Web-based</option>
+                            <option value="windows">Windows</option>
+                            <option value="mac">macOS</option>
+                            <option value="linux">Linux</option>
+                            <option value="mobile">Mobile (iOS/Android)</option>
+                        </select>
+                    </div>
+
+                    <!-- Privacy Requirements -->
+                    <div class="form-group">
+                        <label for="privacy" class="label-enhanced block text-sm font-semibold text-white mb-2">
+                            <i class="fas fa-shield-alt mr-2 text-red-400"></i>Privacy Requirements
+                        </label>
+                        <select id="privacy" class="input-enhanced w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                            <option value="standard">Standard</option>
+                            <option value="high">High privacy (GDPR compliant)</option>
+                            <option value="local">Local/on-premise only</option>
+                            <option value="opensource">Open source preferred</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Additional Requirements -->
+                <div class="form-group">
+                    <label for="additional" class="label-enhanced block text-sm font-semibold text-white mb-2">
+                        <i class="fas fa-plus-circle mr-2 text-violet-400"></i>Additional Requirements (Optional)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="additional" 
+                        class="input-enhanced w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 placeholder-gray-400"
+                        placeholder="e.g., API access, specific integrations, team collaboration features..."
+                    >
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    id="submitBtn"
+                    class="btn-enhanced ripple w-full bg-gradient-to-r from-violet-600 to-red-600 text-white font-semibold py-4 px-8 rounded-lg hover:from-violet-700 hover:to-red-700 transition duration-300 transform hover:scale-[1.02] shadow-lg border border-violet-500"
+                >
+                    <i class="fas fa-search mr-2"></i>Get Recommendations
+                </button>
+            </form>
+
+            <!-- Enhanced Loading State -->
+            <div id="loadingState" class="hidden text-center py-8 fade-in">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <div class="progress-dots">
+                    <div class="progress-dot"></div>
+                    <div class="progress-dot"></div>
+                    <div class="progress-dot"></div>
+                    <div class="progress-dot"></div>
+                </div>
+                <p class="text-gray-300 font-medium mt-4 animate-pulse">Analyzing your requirements...</p>
+                <p class="text-sm text-gray-400 mt-2">This may take a few moments as we search for the best matches</p>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="mt-4 text-sm text-gray-500">
+                    <span id="loadingStep">Initializing AI analysis...</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-400">© 2024 Eureka Juniors - Prototype for Business Competition</p>
+            <p class="text-gray-500 text-sm mt-2">Powered by AI-driven recommendations</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
