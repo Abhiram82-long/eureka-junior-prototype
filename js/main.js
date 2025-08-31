@@ -60,29 +60,28 @@ class AnimationController {
     // Enhanced typewriter effect with cursor animation
     setupTypewriter() {
         const typewriterEl = document.querySelector('.typewriter');
-        if (typewriterEl) {
-            const text = typewriterEl.textContent;
-            typewriterEl.textContent = '';
-            typewriterEl.style.borderRight = '3px solid #8b5cf6';
-            
-            setTimeout(() => {
-                let i = 0;
-                const typing = setInterval(() => {
-                    if (i < text.length) {
-                        typewriterEl.textContent += text.charAt(i);
-                        i++;
-                        // Add typing sound effect (visual feedback)
-                        typewriterEl.style.transform = 'scale(1.02)';
-                        setTimeout(() => {
-                            typewriterEl.style.transform = 'scale(1)';
-                        }, 50);
-                    } else {
-                        clearInterval(typing);
-                        typewriterEl.style.borderRight = 'none';
-                    }
-                }, 60);
-            }, 1000);
-        }
+        if (!typewriterEl || typewriterEl.dataset.typed === 'true') return;
+        
+        typewriterEl.dataset.typed = 'true';
+        const text = typewriterEl.textContent.trim();
+        typewriterEl.textContent = '';
+        typewriterEl.style.borderRight = '3px solid #8b5cf6';
+        
+        setTimeout(() => {
+            let i = 0;
+            const typing = setInterval(() => {
+                if (i < text.length) {
+                    typewriterEl.textContent += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typing);
+                    // Keep cursor blinking
+                    setTimeout(() => {
+                        typewriterEl.style.animation = 'blinkCursor 1s step-end infinite';
+                    }, 500);
+                }
+            }, 50);
+        }, 800);
     }
     
     // Enhanced form animations with micro-interactions
@@ -200,24 +199,55 @@ class AnimationController {
     }
     
     showValidationIcon(input, icon, color) {
-        let iconElement = input.parentElement.querySelector('.validation-icon');
-        if (!iconElement) {
-            iconElement = document.createElement('i');
-            iconElement.className = 'validation-icon fas fa-' + icon + ' absolute right-3 top-1/2 transform -translate-y-1/2 text-' + color + '-400';
-            input.parentElement.style.position = 'relative';
-            input.parentElement.appendChild(iconElement);
-        } else {
-            iconElement.className = 'validation-icon fas fa-' + icon + ' absolute right-3 top-1/2 transform -translate-y-1/2 text-' + color + '-400';
+        // Remove existing validation icon
+        const existingIcon = input.parentElement.querySelector('.validation-icon');
+        if (existingIcon) {
+            existingIcon.remove();
         }
+        
+        // Don't show validation for password fields or if input is empty
+        if (input.type === 'password' || !input.value.trim()) {
+            return;
+        }
+        
+        const iconElement = document.createElement('i');
+        iconElement.className = `validation-icon fas fa-${icon} absolute right-3 top-1/2 transform -translate-y-1/2 text-${color}-400`;
+        input.parentElement.style.position = 'relative';
+        input.parentElement.appendChild(iconElement);
     }
     
     // Add particle effects for enhanced visual appeal
     setupParticleEffects() {
+        // Check if particles already exist to avoid duplicates
+        if (document.querySelector('.particle-container')) {
+            return;
+        }
+        
         const particleContainer = document.createElement('div');
         particleContainer.className = 'particle-container fixed inset-0 pointer-events-none z-0';
-        particleContainer.innerHTML = Array.from({length: 20}, () => 
-            '<div class="particle absolute w-1 h-1 bg-white/20 rounded-full"></div>'
-        ).join('');
+        particleContainer.style.overflow = 'hidden';
+        
+        // Create floating particles with different sizes and opacity
+        const particleCount = 15;
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle absolute rounded-full';
+            
+            // Random size between 2-6px
+            const size = Math.random() * 4 + 2;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            // Random color from theme colors
+            const colors = ['rgba(139, 92, 246, 0.3)', 'rgba(220, 38, 38, 0.3)', 'rgba(245, 158, 11, 0.3)', 'rgba(6, 182, 212, 0.3)'];
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Random starting position
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.top = `${Math.random() * 100}%`;
+            
+            particleContainer.appendChild(particle);
+        }
         
         document.body.appendChild(particleContainer);
         
@@ -229,31 +259,47 @@ class AnimationController {
     }
     
     animateParticle(particle, index) {
-        const duration = 8000 + Math.random() * 4000;
-        const delay = index * 200;
+        const duration = 15000 + Math.random() * 10000; // 15-25 seconds
+        const delay = index * 500;
         
-        particle.style.animation = `float ${duration}ms ease-in-out ${delay}ms infinite`;
+        // Create unique animation for each particle
+        const animationName = `particleFloat${index}`;
+        const xStart = Math.random() * 20 - 10; // -10 to 10vw
+        const xEnd = Math.random() * 20 - 10;
         
-        // Add CSS animation
-        if (!document.querySelector('#particle-animations')) {
+        // Add animation style if it doesn't exist
+        if (!document.querySelector(`#particle-animation-${index}`)) {
             const style = document.createElement('style');
-            style.id = 'particle-animations';
+            style.id = `particle-animation-${index}`;
             style.textContent = `
-                @keyframes float {
-                    0%, 100% { 
-                        transform: translateY(100vh) translateX(${Math.random() * 100}vw) rotate(0deg);
+                @keyframes ${animationName} {
+                    0% {
+                        transform: translate(0, 0) scale(0);
                         opacity: 0;
                     }
-                    10% { opacity: 1; }
-                    90% { opacity: 1; }
-                    100% { 
-                        transform: translateY(-100px) translateX(${Math.random() * 100}vw) rotate(360deg);
+                    10% {
+                        transform: translate(${xStart}vw, -10vh) scale(1);
+                        opacity: 0.6;
+                    }
+                    50% {
+                        transform: translate(${xEnd}vw, -50vh) scale(1.2);
+                        opacity: 0.8;
+                    }
+                    90% {
+                        transform: translate(${xStart}vw, -90vh) scale(1);
+                        opacity: 0.6;
+                    }
+                    100% {
+                        transform: translate(0, -100vh) scale(0);
                         opacity: 0;
                     }
                 }
             `;
             document.head.appendChild(style);
         }
+        
+        // Apply animation to particle
+        particle.style.animation = `${animationName} ${duration}ms cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms infinite`;
     }
     
     // Smooth scrolling for better UX
@@ -272,9 +318,10 @@ class AnimationController {
         });
     }
     
-    // Parallax effects for depth
+    // Parallax effects for depth with throttling
     setupParallaxEffects() {
-        window.addEventListener('scroll', () => {
+        let ticking = false;
+        const updateParallax = () => {
             const scrolled = window.pageYOffset;
             const parallaxElements = document.querySelectorAll('.parallax');
             
@@ -283,7 +330,16 @@ class AnimationController {
                 const yPos = -(scrolled * speed);
                 element.style.transform = `translateY(${yPos}px)`;
             });
-        });
+            
+            ticking = false;
+        };
+        
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(updateParallax);
+                ticking = true;
+            }
+        }, { passive: true });
     }
     
     // Cleanup method for performance
@@ -343,8 +399,15 @@ class CacheManager {
 
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if already initialized to prevent duplicate initialization
+    if (window.animationController) return;
+    
     const animationController = new AnimationController();
     const cacheManager = new CacheManager();
+    
+    // Store in window for cleanup
+    window.animationController = animationController;
+    window.cacheManager = cacheManager;
 
     // Pre-fill API key from session storage
     const apiKeyInput = document.getElementById('apiKey');
@@ -564,17 +627,29 @@ async function getRecommendations(prompt) {
         ]
     };
     
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-    });
-    
-    if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-    }
+    try {
+        const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
+            
+            if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+            } else if (response.status === 403) {
+                throw new Error('Invalid API key. Please check your Gemini API key.');
+            } else if (response.status === 400) {
+                throw new Error('Invalid request. Please check your input and try again.');
+            } else {
+                throw new Error(`API request failed: ${response.status} - ${response.statusText}`);
+            }
+        }
     
     const data = await response.json();
     
@@ -601,12 +676,57 @@ async function getRecommendations(prompt) {
     } catch (e) {
         console.error('Failed to parse JSON response:', e);
         console.error('Raw response text:', text);
+        
+        // Try to extract any useful information from the response
+        const lines = text.split('\n');
+        const recommendations = [];
+        
+        // Attempt basic parsing for common patterns
+        if (text.includes('1.') || text.includes('1)')) {
+            // Try to parse numbered list format
+            const matches = text.match(/\d+[.)].+?(?=\d+[.)]|$)/gs);
+            if (matches && matches.length > 0) {
+                matches.forEach((match, index) => {
+                    const nameMatch = match.match(/[*_]?([A-Z][\w\s]+)[*_]?/); 
+                    if (nameMatch) {
+                        recommendations.push({
+                            rank: index + 1,
+                            name: nameMatch[1].trim(),
+                            tagline: 'Tool recommendation',
+                            description: match,
+                            website: '#',
+                            pricing: 'Check website',
+                            trialAvailable: false,
+                            pros: ['Recommended for your use case'],
+                            cons: ['Details not fully parsed'],
+                            confidence: 70,
+                            reasoning: 'Recommended based on your requirements',
+                            keyFeatures: ['Matches your criteria'],
+                            alternativesConsidered: ''
+                        });
+                    }
+                });
+            }
+        }
+        
+        if (recommendations.length > 0) {
+            return {
+                recommendations,
+                summary: "Successfully found recommendations but had issues parsing the full details. Please review the tools below.",
+                additionalNotes: "Some details may be incomplete. Visit the tool websites for complete information."
+            };
+        }
+        
         // Return a fallback structure
         return {
             recommendations: [],
-            summary: "Failed to parse recommendations. Please try again.",
-            additionalNotes: "There was an issue processing the AI response. Please verify your internet connection and try again."
+            summary: "Failed to parse recommendations. The AI response was not in the expected format.",
+            additionalNotes: "Please try again or refine your search criteria. If the problem persists, check your API key and internet connection."
         };
+    }
+    } catch (networkError) {
+        console.error('Network error:', networkError);
+        throw new Error(`Network error: ${networkError.message}. Please check your internet connection.`);
     }
 }
 

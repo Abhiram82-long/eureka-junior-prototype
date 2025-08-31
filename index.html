@@ -333,32 +333,6 @@
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
         }
         
-        /* Enhanced Button Animations */
-        .btn-enhanced {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .btn-enhanced::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn-enhanced:hover::before {
-            left: 100%;
-        }
-        
-        .btn-enhanced:active {
-            transform: scale(0.98);
-        }
-        
         /* Enhanced Card Hover Effects */
         .recommendation-card {
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -411,29 +385,7 @@
             animation: fadeInUp 0.5s ease-out;
         }
         
-        /* Enhanced Form Group Animations */
-        .form-group {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .form-group:hover {
-            transform: translateY(-2px);
-        }
-        
-        /* Enhanced Input Focus Effects */
-        .input-enhanced:focus {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
-        }
-        
-        /* Enhanced Label Animations */
-        .label-enhanced {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .label-enhanced:hover {
-            transform: translateX(4px);
-        }
+
         
         /* Loading Progress Bar */
         .progress-bar {
@@ -652,7 +604,7 @@
                     <input 
                         type="text" 
                         id="additional" 
-                        class="input-enhanced w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 placeholder-gray-400">
+                        class="input-enhanced w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 placeholder-gray-400"
                         placeholder="e.g., API access, specific integrations, team collaboration features..."
                     >
                 </div>

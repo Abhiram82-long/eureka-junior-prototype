@@ -159,9 +159,13 @@ class ResultsAnimationController {
         const modal = document.createElement('div');
         modal.id = 'comparisonModal';
         modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4';
+        modal.style.opacity = '0';
+        modal.style.transition = 'opacity 0.3s ease-in-out';
         
         const modalContent = document.createElement('div');
         modalContent.className = 'bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto';
+        modalContent.style.transform = 'scale(0.9)';
+        modalContent.style.transition = 'transform 0.3s ease-in-out';
         
         modalContent.innerHTML = `
             <div class="p-6">
@@ -214,17 +218,53 @@ class ResultsAnimationController {
         modal.appendChild(modalContent);
         document.body.appendChild(modal);
         
-        // Add close event listener
-        document.getElementById('closeModal').addEventListener('click', () => {
-            modal.remove();
+        // Animate modal appearance and ensure it's visible
+        requestAnimationFrame(() => {
+            modal.style.opacity = '1';
+            modalContent.style.transform = 'scale(1)';
+            
+            // Scroll to top of page to ensure modal is visible
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            
+            // Focus on modal for accessibility
+            modalContent.focus();
         });
         
-        // Close on outside click
+        // Add close event listener with animation
+        document.getElementById('closeModal').addEventListener('click', () => {
+            modal.style.opacity = '0';
+            modalContent.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        });
+        
+        // Close on outside click with animation
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                modal.remove();
+                modal.style.opacity = '0';
+                modalContent.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    modal.remove();
+                }, 300);
             }
         });
+        
+        // Close on Escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                modal.style.opacity = '0';
+                modalContent.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    modal.remove();
+                    document.removeEventListener('keydown', handleEscape);
+                }, 300);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
         
         this.createNotification(`Comparing ${recommendations.length} selected tools`, 'success');
     }
@@ -564,18 +604,38 @@ function displayRecommendations(data) {
         return;
     }
     
-    // Display summary if available with enhanced animation
-    if (data.summary) {
-        const summaryElement = document.createElement('div');
-        summaryElement.className = 'bg-gray-800 border-l-4 border-cyan-500 p-4 mb-6 fade-in scroll-reveal';
-        summaryElement.innerHTML = `
-            <h3 class="font-semibold text-white mb-2 stagger-child">
-                <i class="fas fa-info-circle mr-2 text-cyan-400"></i>Summary
-            </h3>
-            <p class="text-gray-300 stagger-child">${data.summary}</p>
-        `;
-        container.appendChild(summaryElement);
-    }
+    // Always display summary box with enhanced animation (blue box)
+    const summaryElement = document.createElement('div');
+    summaryElement.className = 'bg-blue-900/30 border-2 border-blue-500 backdrop-blur-sm p-6 mb-6 rounded-lg fade-in scroll-reveal shadow-lg';
+    summaryElement.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05))';
+    
+    const summaryContent = data.summary || 
+        `Based on your requirements, we've identified ${data.recommendations ? data.recommendations.length : 0} tools that match your needs. ` +
+        `These recommendations are tailored specifically for your use case and budget constraints.`;
+    
+    summaryElement.innerHTML = `
+        <div class="flex items-start">
+            <div class="mr-4">
+                <i class="fas fa-lightbulb text-3xl text-blue-400 animate-pulse"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="font-bold text-xl text-blue-300 mb-3 stagger-child">
+                    AI Analysis Summary
+                </h3>
+                <p class="text-gray-200 leading-relaxed stagger-child">${summaryContent}</p>
+                ${data.recommendations && data.recommendations.length > 0 ? `
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        ${data.recommendations.slice(0, 3).map((rec, idx) => `
+                            <span class="bg-blue-800/50 text-blue-200 px-3 py-1 rounded-full text-sm border border-blue-600/50">
+                                ${rec.name}
+                            </span>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    container.appendChild(summaryElement);
     
     // Display each recommendation with enhanced staggered animation
     data.recommendations.forEach((rec, index) => {
@@ -614,18 +674,44 @@ function displayRecommendations(data) {
         }, index * 200);
     });
     
-    // Display additional notes if available with enhanced animation
-    if (data.additionalNotes) {
-        const notesElement = document.createElement('div');
-        notesElement.className = 'bg-gray-800 border-l-4 border-yellow-500 p-4 mt-6 fade-in scroll-reveal';
-        notesElement.innerHTML = `
-            <h3 class="font-semibold text-white mb-2 stagger-child">
-                <i class="fas fa-lightbulb mr-2 text-yellow-400"></i>Additional Notes
-            </h3>
-            <p class="text-gray-300 stagger-child">${data.additionalNotes}</p>
-        `;
-        container.appendChild(notesElement);
-    }
+    // Always display additional insights box with enhanced animation (orange box)
+    const notesElement = document.createElement('div');
+    notesElement.className = 'bg-orange-900/30 border-2 border-orange-500 backdrop-blur-sm p-6 mt-6 rounded-lg fade-in scroll-reveal shadow-lg';
+    notesElement.style.background = 'linear-gradient(135deg, rgba(251, 146, 60, 0.1), rgba(249, 115, 22, 0.05))';
+    
+    const additionalContent = data.additionalNotes || 
+        `Consider trying free trials where available to test these tools before committing. ` +
+        `Each tool has been evaluated based on your specific requirements, current market presence, and user feedback. ` +
+        `Remember to check for any special offers or educational discounts that might apply to your situation.`;
+    
+    notesElement.innerHTML = `
+        <div class="flex items-start">
+            <div class="mr-4">
+                <i class="fas fa-exclamation-triangle text-3xl text-orange-400 animate-pulse"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="font-bold text-xl text-orange-300 mb-3 stagger-child">
+                    Important Insights & Tips
+                </h3>
+                <p class="text-gray-200 leading-relaxed mb-4 stagger-child">${additionalContent}</p>
+                <div class="grid md:grid-cols-3 gap-4 mt-4">
+                    <div class="bg-orange-800/20 p-3 rounded-lg border border-orange-600/30">
+                        <i class="fas fa-clock text-orange-400 mb-2"></i>
+                        <p class="text-sm text-gray-300">Most tools offer 7-30 day trials</p>
+                    </div>
+                    <div class="bg-orange-800/20 p-3 rounded-lg border border-orange-600/30">
+                        <i class="fas fa-dollar-sign text-orange-400 mb-2"></i>
+                        <p class="text-sm text-gray-300">Check for bundle deals and annual discounts</p>
+                    </div>
+                    <div class="bg-orange-800/20 p-3 rounded-lg border border-orange-600/30">
+                        <i class="fas fa-graduation-cap text-orange-400 mb-2"></i>
+                        <p class="text-sm text-gray-300">Educational discounts may be available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(notesElement);
     
     // Initialize scroll animations after content is loaded
     if (window.resultsAnimationController) {
