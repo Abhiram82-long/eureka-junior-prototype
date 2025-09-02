@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendations - Eureka Juniors</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Your personalized tool recommendations from Eureka Juniors">
+    <meta name="theme-color" content="#8b5cf6">
+    <link rel="manifest" href="./manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Enhanced Gradient Background */
+        .gradient-bg {
+            background: linear-gradient(135deg, #8b5cf6 0%, #dc2626 50%, #f59e0b 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease-in-out infinite;
+            position: relative;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .glass-effect {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+        
+        /* Enhanced Card Animations */
+        .recommendation-card {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .recommendation-card.animate-in {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.25);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+        
+        .recommendation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(220, 38, 38, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        
+        .recommendation-card:hover::before {
+            opacity: 1;
+        }
+        
+        /* Enhanced Confidence Bar Animation */
+        .confidence-bar {
+            width: 0;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(90deg, #dc2626, #f59e0b, #10b981);
+            background-size: 200% 100%;
+            position: relative;
+            overflow: hidden;
+            animation: progressShimmer 2s ease-in-out infinite;
+        }
+        
+        .confidence-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes progressShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Enhanced Staggered Fade-in */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .fade-in-delay-1 { animation-delay: 0.1s; }
+        .fade-in-delay-2 { animation-delay: 0.2s; }
+        .fade-in-delay-3 { animation-delay: 0.3s; }
+        .fade-in-delay-4 { animation-delay: 0.4s; }
+        .fade-in-delay-5 { animation-delay: 0.5s; }
+        
+        /* Enhanced Stagger Animations */
+        .stagger-child {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .stagger-child.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Enhanced Scroll Reveal */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Enhanced Loading Skeleton */
+        .loading-skeleton {
+            background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+            background-size: 200% 100%;
+            animation: skeletonLoading 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes skeletonLoading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Pulse Animation for Loading */
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+            }
+        }
+        
+        /* Tool Card Hover Effects */
+        .tool-tag {
+            transition: all 0.2s ease;
+        }
+        
+        .tool-tag:hover {
+            transform: scale(1.05);
+            background: rgba(139, 92, 246, 0.2);
+        }
+        
+        /* Floating Action Buttons */
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 40;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .floating-btn:hover {
+            transform: translateY(-4px) scale(1.1);
+            box-shadow: 0 12px 24px rgba(139, 92, 246, 0.4);
+        }
+        
+        /* Page Transition */
+        .page-enter {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: pageEnterAnimation 0.8s ease-out forwards;
+        }
+        
+        @keyframes pageEnterAnimation {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Count-up Animation */
+        .count-up {
+            font-variant-numeric: tabular-nums;
+        }
+        
+        /* Comparison Mode Styles */
+        .comparison-mode .recommendation-card {
+            transform: scale(0.95);
+        }
+        
+        .comparison-selected {
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+        }
+        
+        /* Enhanced Button Animations */
+        .btn-enhanced {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-enhanced::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-enhanced:hover::before {
+            left: 100%;
+        }
+        
+        .btn-enhanced:active {
+            transform: scale(0.98);
+        }
+        
+        /* Enhanced Notification Animations */
+        .notification-toast {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        /* Enhanced Comparison Mode */
+        .comparison-mode .recommendation-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .comparison-mode .recommendation-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.2);
+        }
+        
+        .comparison-selected {
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3) !important;
+            transform: translateY(-4px) scale(1.02);
+        }
+        
+        /* Enhanced Loading States */
+        .loading-state {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        /* Enhanced Form Validation */
+        .input-enhanced.valid {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .input-enhanced.invalid {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        /* Enhanced Progress Bar */
+        .progress-fill {
+            background: linear-gradient(90deg, #8b5cf6, #dc2626, #f59e0b);
+            background-size: 200% 100%;
+            animation: progressShimmer 2s ease-in-out infinite;
+        }
+        
+        @keyframes progressShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 page-enter">
+    <!-- Navigation -->
+    <nav class="glass-effect border-b border-gray-700 fixed w-full top-0 z-50 fade-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <i class="fas fa-lightbulb text-2xl text-violet-400"></i>
+                        <span class="font-bold text-xl text-white">Eureka Juniors</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <a href="/dashboard" class="text-gray-300 hover:text-violet-400 font-medium transition">Dashboard</a>
+                    <a href="/search" class="text-gray-300 hover:text-violet-400 font-medium transition">Search</a>
+                    <a href="methodology.html" class="text-gray-300 hover:text-violet-400 font-medium transition">Methodology</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Results Header -->
+    <section class="gradient-bg text-white pt-24 pb-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-3xl font-bold mb-4 fade-in">Your Personalized Recommendations</h1>
+            <div id="queryDetails" class="bg-white/20 backdrop-blur-sm rounded-lg p-4 fade-in fade-in-delay-1">
+                <!-- Query details will be inserted here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Loading State -->
+        <div id="loadingResults" class="hidden">
+            <div class="space-y-4">
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                    <div class="loading-skeleton h-6 w-3/4 mb-3 rounded"></div>
+                    <div class="loading-skeleton h-4 w-full mb-2 rounded"></div>
+                    <div class="loading-skeleton h-4 w-5/6 rounded"></div>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                    <div class="loading-skeleton h-6 w-3/4 mb-3 rounded"></div>
+                    <div class="loading-skeleton h-4 w-full mb-2 rounded"></div>
+                    <div class="loading-skeleton h-4 w-5/6 rounded"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-4 mb-8 fade-in fade-in-delay-2">
+            <button id="compareBtn" class="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition font-medium">
+                <i class="fas fa-balance-scale mr-2"></i>Compare Tools
+            </button>
+            <button id="exportBtn" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition font-medium">
+                <i class="fas fa-download mr-2"></i>Export Results
+            </button>
+            <button id="newSearchBtn" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition font-medium">
+                <i class="fas fa-search mr-2"></i>New Search
+            </button>
+        </div>
+        
+        <!-- Results Container -->
+        <div id="resultsContainer" class="space-y-6">
+            <!-- Results will be dynamically inserted here -->
+        </div>
+        
+        <!-- Floating Back Button -->
+        <a href="/dashboard" class="floating-btn bg-violet-600 hover:bg-violet-700 text-white p-3 rounded-full shadow-lg">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+
+        <!-- No Results State -->
+        <div id="noResults" class="hidden text-center py-12">
+            <i class="fas fa-search text-6xl text-gray-600 mb-4"></i>
+            <h2 class="text-2xl font-semibold text-white mb-2">No recommendations found</h2>
+            <p class="text-gray-400 mb-6">Try adjusting your search criteria or describing your needs differently</p>
+            <a href="index.html" class="inline-block bg-violet-600 text-white px-6 py-3 rounded-lg hover:bg-violet-700 transition border border-violet-500">
+                <i class="fas fa-arrow-left mr-2"></i>Start New Search
+            </a>
+        </div>
+
+        <!-- Actions Section -->
+        <div id="actionsSection" class="mt-12 border-t border-gray-700 pt-8">
+            <div class="flex flex-wrap gap-4 justify-center">
+                <button onclick="window.print()" class="bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition border border-gray-600">
+                    <i class="fas fa-print mr-2"></i>Print Results
+                </button>
+                <button onclick="exportResults()" class="bg-cyan-600 text-white px-6 py-3 rounded-lg hover:bg-cyan-700 transition border border-cyan-500">
+                    <i class="fas fa-download mr-2"></i>Export as JSON
+                </button>
+                <a href="/search" class="bg-violet-600 text-white px-6 py-3 rounded-lg hover:bg-violet-700 transition inline-block border border-violet-500">
+                    <i class="fas fa-search mr-2"></i>New Search
+                </a>
+            </div>
+        </div>
+
+        <!-- Methodology Note -->
+        <div class="mt-12 bg-gray-800 border border-cyan-500 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">
+                <i class="fas fa-info-circle mr-2 text-cyan-400"></i>How We Generate Recommendations
+            </h3>
+            <p class="text-gray-300 text-sm mb-3">
+                Our recommendations are generated using advanced AI analysis that considers your specific requirements, 
+                budget constraints, and use case details. Each recommendation includes:
+            </p>
+            <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                <li>Detailed analysis of tool capabilities matched to your needs</li>
+                <li>Current pricing information and trial availability</li>
+                <li>Pros and cons specific to your use case</li>
+                <li>Confidence scores based on match quality</li>
+            </ul>
+            <a href="methodology.html" class="inline-block mt-4 text-cyan-400 hover:text-cyan-300 font-medium text-sm">
+                Learn more about our methodology <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-400">© 2024 Eureka Juniors - Prototype for Business Competition</p>
+            <p class="text-gray-500 text-sm mt-2">Powered by AI-driven recommendations</p>
+        </div>
+    </footer>
+
+    <script src="js/results.js"></script>
+</body>
+</html>
