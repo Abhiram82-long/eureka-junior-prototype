@@ -5,9 +5,6 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Initialize database connection
-db.init().catch(console.error);
-
 // Get user profile and stats
 router.get('/profile', requireAuth, async (req, res) => {
     try {

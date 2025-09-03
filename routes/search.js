@@ -5,9 +5,6 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Initialize database connection
-db.init().catch(console.error);
-
 // Save search results
 router.post('/save', requireAuth, [
     body('queryData').isObject().withMessage('Query data must be an object'),

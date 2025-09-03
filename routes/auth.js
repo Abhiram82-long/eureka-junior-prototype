@@ -5,9 +5,6 @@ const db = require('../config/database');
 
 const router = express.Router();
 
-// Initialize database connection
-db.init().catch(console.error);
-
 // Registration endpoint
 router.post('/register', [
     body('username')

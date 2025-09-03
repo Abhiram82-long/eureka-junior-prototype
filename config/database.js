@@ -103,30 +103,39 @@ class Database {
     }
 
     // User methods
-    createUser(username, hashedPassword) {
+    async createUser(username, hashedPassword) {
+        if (!this.db) {
+            await this.connect();
+        }
+        
         return new Promise((resolve, reject) => {
             const stmt = this.db.prepare('INSERT INTO users (username, password) VALUES (?, ?)');
             stmt.run([username, hashedPassword], function(err) {
                 if (err) {
                     reject(err);
                 } else {
+                    const userId = this.lastID;
                     // Create initial user stats
-                    const statsStmt = this.db.prepare('INSERT INTO user_stats (user_id) VALUES (?)');
-                    statsStmt.run([this.lastID], (statsErr) => {
+                    const statsStmt = db.db.prepare('INSERT INTO user_stats (user_id) VALUES (?)');
+                    statsStmt.run([userId], (statsErr) => {
                         if (statsErr) {
                             console.error('Error creating user stats:', statsErr.message);
                         }
                     });
                     statsStmt.finalize();
                     
-                    resolve({ id: this.lastID, username });
+                    resolve({ id: userId, username });
                 }
             });
             stmt.finalize();
         });
     }
 
-    getUserByUsername(username) {
+    async getUserByUsername(username) {
+        if (!this.db) {
+            await this.connect();
+        }
+        
         return new Promise((resolve, reject) => {
             this.db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
                 if (err) {
@@ -138,7 +147,11 @@ class Database {
         });
     }
 
-    getUserById(id) {
+    async getUserById(id) {
+        if (!this.db) {
+            await this.connect();
+        }
+        
         return new Promise((resolve, reject) => {
             this.db.get('SELECT * FROM users WHERE id = ?', [id], (err, row) => {
                 if (err) {
@@ -150,7 +163,11 @@ class Database {
         });
     }
 
-    updateUserApiKey(userId, apiKey) {
+    async updateUserApiKey(userId, apiKey) {
+        if (!this.db) {
+            await this.connect();
+        }
+        
         return new Promise((resolve, reject) => {
             const stmt = this.db.prepare('UPDATE users SET gemini_api_key = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
             stmt.run([apiKey, userId], function(err) {
