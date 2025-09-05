@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  eureka-app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SESSION_SECRET=${SESSION_SECRET:-change-this-in-production}
+      - FRONTEND_URL=http://localhost:3000
+    volumes:
+      - eureka_data:/app/database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/auth/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  eureka_data:
+    driver: local
