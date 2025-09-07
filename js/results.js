@@ -1,4 +1,4 @@
-// Enhanced Results page JavaScript for Eureka Juniors
+// Enhanced Results page JavaScript for Tool Finder
 // Modern ES6+ Implementation with Advanced Animations and Performance Optimizations
 
 // Performance-optimized Animation Controller for Results Page
@@ -319,7 +319,7 @@ class ResultsAnimationController {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `eureka-recommendations-${Date.now()}.json`;
+        a.download = `tool-finder-recommendations-${Date.now()}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -409,7 +409,7 @@ class ResultsAnimationController {
     }
     
     toggleFavorite(toolName, button) {
-        const favorites = JSON.parse(localStorage.getItem('eureka-favorites') || '[]');
+        const favorites = JSON.parse(localStorage.getItem('tool-finder-favorites') || '[]');
         const index = favorites.indexOf(toolName);
         
         if (index === -1) {
@@ -422,7 +422,7 @@ class ResultsAnimationController {
             this.createNotification(`${toolName} removed from favorites!`, 'info');
         }
         
-        localStorage.setItem('eureka-favorites', JSON.stringify(favorites));
+        localStorage.setItem('tool-finder-favorites', JSON.stringify(favorites));
     }
     
     createNotification(message, type = 'info') {
@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Theme Management (Note: theme toggle has been removed, but we maintain theme functionality)
 function initTheme() {
-    const savedTheme = localStorage.getItem('eureka-theme') || 'dark';
+    const savedTheme = localStorage.getItem('tool-finder-theme') || 'dark';
     
     applyTheme(savedTheme);
 }
@@ -548,14 +548,72 @@ function applyTheme(theme) {
 
 function loadResults() {
     // Get data from sessionStorage
-    const query = JSON.parse(sessionStorage.getItem('searchQuery') || '{}');
-    const recommendations = JSON.parse(sessionStorage.getItem('recommendations') || '{}');
+    const queryData = sessionStorage.getItem('searchQuery');
+    const recommendationsData = sessionStorage.getItem('recommendations');
     
-    // If no data, redirect to homepage
-    if (!query.useCase || !recommendations.recommendations) {
+    console.log('Loading results...');
+    console.log('Query data from sessionStorage:', queryData);
+    console.log('Recommendations data from sessionStorage:', recommendationsData);
+    
+    let query, recommendations;
+    
+    try {
+        query = JSON.parse(queryData || '{}');
+        recommendations = JSON.parse(recommendationsData || '{}');
+    } catch (error) {
+        console.error('Error parsing session data:', error);
         window.location.href = 'index.html';
         return;
     }
+    
+    console.log('Parsed query:', query);
+    console.log('Parsed recommendations:', recommendations);
+    
+    // Handle data from dashboard (where structure might be nested differently)
+    // Check if recommendations is nested inside another object
+    if (recommendations.queryData && recommendations.recommendations && !recommendations.summary) {
+        // This is data from dashboard - extract the nested structure
+        console.log('Detected dashboard data structure, extracting nested recommendations');
+        query = recommendations.queryData || query;
+        // Don't replace the whole recommendations object, just use the inner recommendations
+        // but preserve any summary and additionalNotes that might exist at the top level
+        const innerRecommendations = recommendations.recommendations;
+        recommendations = {
+            recommendations: innerRecommendations.recommendations || innerRecommendations,
+            summary: innerRecommendations.summary || recommendations.summary,
+            additionalNotes: innerRecommendations.additionalNotes || recommendations.additionalNotes
+        };
+    }
+    
+    // Additional validation and structure normalization
+    if (typeof recommendations.recommendations === 'string') {
+        try {
+            const parsed = JSON.parse(recommendations.recommendations);
+            recommendations = {
+                recommendations: parsed.recommendations || parsed,
+                summary: parsed.summary || recommendations.summary,
+                additionalNotes: parsed.additionalNotes || recommendations.additionalNotes
+            };
+        } catch (e) {
+            console.error('Failed to parse nested recommendations string:', e);
+        }
+    }
+    
+    // If no data, redirect to homepage
+    if (!query.useCase || !recommendations.recommendations) {
+        console.warn('Missing required data - redirecting to homepage');
+        console.log('Query useCase:', query.useCase);
+        console.log('Recommendations array:', recommendations.recommendations);
+        console.log('Full recommendations object:', recommendations);
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    // Log the final structure for debugging
+    console.log('Final query object:', query);
+    console.log('Final recommendations object:', recommendations);
+    console.log('Summary field:', recommendations.summary);
+    console.log('AdditionalNotes field:', recommendations.additionalNotes);
     
     // Display query details
     displayQueryDetails(query);
@@ -621,10 +679,18 @@ function displayRecommendations(data) {
     summaryElement.className = 'bg-blue-900/30 border-2 border-blue-500 backdrop-blur-sm p-6 mb-6 rounded-lg fade-in scroll-reveal shadow-lg';
     summaryElement.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05))';
     
-    // Use the actual summary from the data, or default text
-    const summaryContent = (data.summary && data.summary.trim()) ? 
-        data.summary : 
-        `Based on your requirements, we've identified ${data.recommendations ? data.recommendations.length : 0} tools that match your needs. These recommendations are tailored specifically for your use case and budget constraints.`;
+    // Ensure we always have summary content - check for undefined, null, or empty string
+    let summaryContent = data.summary;
+    if (!summaryContent || summaryContent.trim() === '' || summaryContent === 'undefined') {
+        // Generate a meaningful default summary based on the recommendations
+        const topTool = data.recommendations[0]?.name || 'the top recommendation';
+        const avgConfidence = Math.round(data.recommendations.reduce((acc, rec) => acc + (rec.confidence || 0), 0) / data.recommendations.length);
+        
+        summaryContent = `Based on your requirements, we've identified ${data.recommendations.length} tools that match your needs. ` +
+            `${topTool} leads our recommendations with the highest confidence score. ` +
+            `These tools have been analyzed for compatibility with your specific use case and budget constraints, ` +
+            `with an average confidence score of ${avgConfidence}%. Each recommendation includes detailed pros, cons, and pricing information to help you make an informed decision.`;
+    }
     
     summaryElement.innerHTML = `
         <div class="flex items-start">
@@ -643,6 +709,11 @@ function displayRecommendations(data) {
                                 ${rec.name}
                             </span>
                         `).join('')}
+                        ${data.recommendations.length > 3 ? `
+                            <span class="bg-blue-800/50 text-blue-200 px-3 py-1 rounded-full text-sm border border-blue-600/50">
+                                +${data.recommendations.length - 3} more
+                            </span>
+                        ` : ''}
                     </div>
                 ` : ''}
             </div>
@@ -692,10 +763,21 @@ function displayRecommendations(data) {
     notesElement.className = 'bg-orange-900/30 border-2 border-orange-500 backdrop-blur-sm p-6 mt-6 rounded-lg fade-in scroll-reveal shadow-lg';
     notesElement.style.background = 'linear-gradient(135deg, rgba(251, 146, 60, 0.1), rgba(249, 115, 22, 0.05))';
     
-    // Use the actual additional notes from the data, or default text
-    const additionalContent = (data.additionalNotes && data.additionalNotes.trim()) ? 
-        data.additionalNotes : 
-        `Consider trying free trials where available to test these tools before committing. Each tool has been evaluated based on your specific requirements, current market presence, and user feedback. Remember to check for any special offers or educational discounts that might apply to your situation.`;
+    // Ensure we always have insights content - check for undefined, null, or empty string
+    let additionalContent = data.additionalNotes;
+    if (!additionalContent || additionalContent.trim() === '' || additionalContent === 'undefined') {
+        // Generate contextual additional notes based on the recommendations
+        const hasTrials = data.recommendations.some(rec => rec.trialAvailable);
+        const hasFreeOptions = data.recommendations.some(rec => rec.pricing && rec.pricing.toLowerCase().includes('free'));
+        const trialTip = hasTrials ? 'Several of these tools offer free trials - we recommend testing them before committing. ' : '';
+        const freeTip = hasFreeOptions ? 'Some options include free tiers that might be sufficient for your needs. ' : '';
+        
+        additionalContent = `${trialTip}${freeTip}` +
+            `Each tool has been evaluated based on your specific requirements, current market presence, and user feedback. ` +
+            `Remember to check for any special offers, bundle deals, or educational discounts that might apply. ` +
+            `When making your final decision, consider factors like ease of use, customer support quality, integration capabilities with your existing tools, ` +
+            `and the vendor's track record for updates and long-term support. Many tools also offer annual payment discounts of 15-20%.`;
+    }
     
     notesElement.innerHTML = `
         <div class="flex items-start">
@@ -735,7 +817,7 @@ function displayRecommendations(data) {
 function createRecommendationCard(rec, index) {
     const confidenceColor = rec.confidence >= 80 ? 'green' : rec.confidence >= 60 ? 'yellow' : 'red';
     const rankBadgeColor = index === 0 ? 'violet' : index === 1 ? 'cyan' : 'blue';
-    const favorites = JSON.parse(localStorage.getItem('eureka-favorites') || '[]');
+    const favorites = JSON.parse(localStorage.getItem('tool-finder-favorites') || '[]');
     const isFavorite = favorites.includes(rec.name);
     
     return `
@@ -875,7 +957,7 @@ function exportResults() {
         const dataStr = JSON.stringify(exportData, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
         
-        const exportFileDefaultName = `eureka-recommendations-${Date.now()}.json`;
+        const exportFileDefaultName = `tool-finder-recommendations-${Date.now()}.json`;
         
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);

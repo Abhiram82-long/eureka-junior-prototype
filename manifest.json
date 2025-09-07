@@ -1,7 +1,7 @@
 {
-    "name": "Eureka Juniors - Smart Tool Recommendations",
-    "short_name": "Eureka Juniors",
-    "description": "Trust-first, use-case driven recommendation platform for students, researchers, and knowledge workers",
+    "name": "Tool Finder - Smart Tool Recommendations",
+    "short_name": "Tool Finder",
+    "description": "AI-powered smart tool recommendation platform for students, researchers, and knowledge workers",
     "start_url": "/index.html",
     "display": "standalone",
     "background_color": "#111827",

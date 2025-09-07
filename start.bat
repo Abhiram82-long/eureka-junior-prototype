@@ -1,92 +1,164 @@
 @echo off
-setlocal enabledelayedexpansion
-REM Eureka Juniors Full-Stack Deployment Script for Windows
+setlocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
-echo 🚀 Starting Eureka Juniors Full-Stack Application...
+REM =============================================================
+REM Tool Finder - Windows Startup Script (Improved Output & Checks)
+REM =============================================================
+title Tool Finder - Startup
 
-REM Check if Node.js is installed
+REM Optional: use UTF-8 codepage for consistent output (no emojis used)
+chcp 65001 >nul
+
+echo =============================================================
+echo  Tool Finder - Starting Application
+echo =============================================================
+echo [INFO] Checking system prerequisites...
+
+REM --- Check Node.js availability ---
 node --version >nul 2>&1
-if !ERRORLEVEL! neq 0 (
-    echo ❌ Node.js is not installed. Please install Node.js 14 or higher.
-    pause
-    exit /b 1
+if errorlevel 1 (
+    echo [ERROR] Node.js is not installed. Please install Node.js v14 or higher from https://nodejs.org/
+    goto :fail
 )
-
-echo ✅ Node.js version:
-node --version
-echo ✅ Node.js v22.19.0 is fully supported!
-echo.
-
-REM Install dependencies
-echo 📦 Installing dependencies...
-call npm install
-if !ERRORLEVEL! neq 0 (
-    echo ❌ Failed to install dependencies
-    echo Please check your internet connection and try again.
-    pause
-    exit /b 1
+for /f "tokens=1 delims=v" %%v in ('node -v') do set NODE_VER=%%v
+for /f "tokens=1 delims=." %%m in ("!NODE_VER!") do set NODE_MAJOR=%%m
+if "!NODE_MAJOR!"=="" set NODE_MAJOR=0
+if !NODE_MAJOR! LSS 14 (
+    echo [ERROR] Detected Node.js major version !NODE_MAJOR!. Version 14 or higher is required.
+    goto :fail
 )
-echo ✅ Dependencies installed successfully
-echo.
+echo [OK]   Node.js version: v!NODE_VER!
 
-REM Create database directory if it doesn't exist
-if not exist "database" (
-    echo 📁 Creating database directory...
-    mkdir database
-)
+REM --- Skip npm version check for now ---
+echo [OK]   npm check skipped
 
-REM Check if database exists, if not initialize it
-if not exist "database\eureka.db" (
-    echo 🗃️ Initializing database...
-    call npm run init-db
-    if !ERRORLEVEL! neq 0 (
-        echo ❌ Failed to initialize database
-        echo Please check the console output above for error details.
-        pause
-        exit /b 1
-    )
-    echo ✅ Database initialized successfully
-) else (
-    echo ✅ Database already exists
-)
-echo.
-
-REM Check if .env file exists
+REM --- Ensure .env exists (create defaults if needed) ---
 if not exist ".env" (
-    echo ⚠️  .env file not found. Creating default .env file...
+    echo [WARN] .env not found. Creating a default .env file...
     (
         echo NODE_ENV=development
         echo PORT=3000
         echo SESSION_SECRET=change-this-secure-key-in-production
         echo FRONTEND_URL=http://localhost:3000
-        echo DB_PATH=./database/eureka.db
+        echo DB_PATH=./database/tool-finder.db
         echo BCRYPT_ROUNDS=12
     ) > .env
-    echo ✅ Created .env file
-    echo ⚠️  Please update SESSION_SECRET in .env file for production use
+    if errorlevel 1 (
+        echo [ERROR] Failed to create .env file in the current directory.
+        goto :fail
+    )
+    echo [OK]   Created .env with defaults. Remember to change SESSION_SECRET for production.
 ) else (
-    echo ✅ .env file exists
-)
-echo.
-
-echo 🌟 Starting the application...
-echo 📍 Application will be available at: http://localhost:3000
-echo 🔐 First time? Register a new account to get started
-echo 🔧 Configure your Gemini API key in the dashboard after login
-echo.
-echo Press Ctrl+C to stop the server
-echo.
-
-REM Check if nodemon is available
-call npm list nodemon >nul 2>&1
-if !ERRORLEVEL! equ 0 (
-    echo 🔧 Starting in development mode with auto-restart...
-    call npm run dev
-) else (
-    echo 🚀 Starting in production mode...
-    call npm start
+    echo [OK]   .env file found.
 )
 
+REM --- Load key values from .env ---
+set PORT=3000
+set DB_PATH=./database/tool-finder.db
+for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
+    set "key=%%A"
+    set "val=%%B"
+    if /I "!key!"=="PORT" set PORT=!val!
+    if /I "!key!"=="DB_PATH" set DB_PATH=!val!
+    if /I "!key!"=="SESSION_SECRET" set SESSION_SECRET=!val!
+)
+
+REM Trim quotes and spaces from variables
+for %%V in (PORT DB_PATH SESSION_SECRET) do (
+    for /f "tokens=*" %%Z in ("!%%V!") do set "%%V=%%~Z"
+)
+
+REM --- Validate essential env vars ---
+if "!SESSION_SECRET!"=="" (
+    echo [ERROR] SESSION_SECRET is missing in .env
+    goto :fail
+)
+if /I "!SESSION_SECRET!"=="change-this-secure-key-in-production" (
+    echo [WARN] SESSION_SECRET is still set to the default. Set a secure random value for production.
+)
+
+REM --- Create database directory (from DB_PATH) ---
+for %%I in ("!DB_PATH!") do set DB_DIR=%%~dpI
+if not exist "!DB_DIR!" (
+    echo [INFO] Creating database directory: !DB_DIR!
+    mkdir "!DB_DIR!" >nul 2>&1
+    if errorlevel 1 (
+        echo [ERROR] Failed to create database directory: !DB_DIR!
+        goto :fail
+    )
+)
+
+REM --- Check write permissions to database directory ---
+echo test > "!DB_DIR!__write_test.tmp" 2>nul
+if errorlevel 1 (
+    echo [ERROR] No write permission to database directory: !DB_DIR!
+    goto :fail
+) else (
+    del /f /q "!DB_DIR!__write_test.tmp" >nul 2>&1
+    echo [OK]   Database directory is writable: !DB_DIR!
+)
+
+REM --- Check if port is already in use ---
+echo [INFO] Checking if port !PORT! is available...
+for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":!PORT! " ^| findstr LISTENING') do set PID_INUSE=%%P
+if defined PID_INUSE (
+    echo [ERROR] Port !PORT! appears to be in use by PID !PID_INUSE!.
+    echo         Close the process or change PORT in .env to another value.
+    goto :fail
+) else (
+    echo [OK]   Port !PORT! is available.
+)
+
+REM --- Install dependencies ---
+echo [INFO] Installing npm dependencies (this may take a moment)...
+call npm install
+if errorlevel 1 (
+    echo [ERROR] Failed to install dependencies. Please check your network connection and npm configuration.
+    goto :fail
+)
+echo [OK]   Dependencies installed.
+
+REM --- Verify critical dependencies can be resolved ---
+echo [INFO] Verifying installed packages...
+node -e "require('express');require('express-session');require('sqlite3');require('helmet');require('cors');require('express-rate-limit');require('dotenv');require('express-validator');require('node-fetch');console.log('OK');" >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] One or more required packages could not be resolved. Try removing node_modules and reinstalling.
+    echo         Commands:
+    echo           rmdir /S /Q node_modules
+    echo           del /Q package-lock.json
+    echo           npm install
+    goto :fail
+)
+echo [OK]   Package resolution successful.
+
+REM --- Initialize database if missing ---
+if not exist "!DB_PATH!" (
+    echo [INFO] Initializing SQLite database at !DB_PATH! ...
+    call npm run init-db
+    if errorlevel 1 (
+        echo [ERROR] Database initialization failed. See errors above.
+        goto :fail
+    )
+    echo [OK]   Database initialized.
+) else (
+    echo [OK]   Database file exists: !DB_PATH!
+)
+
 echo.
-echo ⚠️  Server stopped. Press any key to close this window.
-pause >nul
+echo Starting Tool Finder server...
+echo URL: http://localhost:!PORT!
+echo.
+echo [INFO] Starting in production mode...
+call npm start
+
+goto :end
+
+:fail
+echo.
+echo =============================================================
+echo  Startup failed. See messages above. Exiting.
+echo =============================================================
+exit /b 1
+
+:end
+endlocal

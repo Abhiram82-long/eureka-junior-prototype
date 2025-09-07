@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  eureka-app:
+  tool-finder-app:
     build: .
     ports:
       - "3000:3000"
@@ -11,7 +11,7 @@ services:
       - SESSION_SECRET=${SESSION_SECRET:-change-this-in-production}
       - FRONTEND_URL=http://localhost:3000
     volumes:
-      - eureka_data:/app/database
+      - tool_finder_data:/app/database
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/auth/status"]
@@ -21,5 +21,5 @@ services:
       start_period: 40s
 
 volumes:
-  eureka_data:
+  tool_finder_data:
     driver: local

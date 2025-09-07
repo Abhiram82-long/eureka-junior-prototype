@@ -6,7 +6,7 @@ async function initializeDatabase() {
         console.log('Initializing database...');
         
         // Ensure database directory exists
-        const dbDir = path.dirname(process.env.DB_PATH || './database/eureka.db');
+        const dbDir = path.dirname(process.env.DB_PATH || './database/tool-finder.db');
         const fs = require('fs');
         if (!fs.existsSync(dbDir)) {
             fs.mkdirSync(dbDir, { recursive: true });
@@ -20,6 +20,9 @@ async function initializeDatabase() {
         console.log('- users');
         console.log('- searches');
         console.log('- user_stats');
+        
+        // Close database connection before exiting
+        await db.close();
         
         process.exit(0);
     } catch (error) {

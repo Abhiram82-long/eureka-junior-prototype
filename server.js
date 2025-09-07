@@ -30,7 +30,7 @@ app.use(limiter);
 
 // CORS configuration
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : 'http://localhost:3000',
+    origin: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : `http://localhost:${PORT}`,
     credentials: true
 }));
 
@@ -40,7 +40,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session configuration
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'eureka-juniors-secret-key-change-in-production',
+    secret: process.env.SESSION_SECRET || 'tool-finder-secret-key-change-in-production',
     resave: false,
     saveUninitialized: false,
     cookie: {

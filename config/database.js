@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 require('dotenv').config();
 
-const DB_PATH = process.env.DB_PATH || './database/eureka.db';
+const DB_PATH = process.env.DB_PATH || './database/tool-finder.db';
 
 class Database {
     constructor() {
@@ -109,14 +109,15 @@ class Database {
         }
         
         return new Promise((resolve, reject) => {
-            const stmt = this.db.prepare('INSERT INTO users (username, password) VALUES (?, ?)');
+            const db = this.db; // Store reference to db instance
+            const stmt = db.prepare('INSERT INTO users (username, password) VALUES (?, ?)');
             stmt.run([username, hashedPassword], function(err) {
                 if (err) {
                     reject(err);
                 } else {
                     const userId = this.lastID;
-                    // Create initial user stats with the Database instance, not db.db
-                    const statsStmt = this.prepare('INSERT INTO user_stats (user_id, total_searches, total_api_calls) VALUES (?, 0, 0)');
+                    // Create initial user stats
+                    const statsStmt = db.prepare('INSERT INTO user_stats (user_id, total_searches, total_api_calls) VALUES (?, 0, 0)');
                     statsStmt.run([userId], (statsErr) => {
                         if (statsErr) {
                             console.error('Error creating user stats:', statsErr.message);
@@ -193,7 +194,7 @@ class Database {
                     reject(err);
                 } else {
                     // Update user stats
-                    db.updateUserStats(userId);
+                    // Note: updateUserStats will be called separately to avoid circular reference
                     resolve({ id: this.lastID });
                 }
             });

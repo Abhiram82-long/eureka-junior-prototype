@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "eureka-juniors-fullstack",
+  "name": "tool-finder-fullstack",
   "version": "1.0.0",
-  "description": "Full-stack Smart Tool Recommendation Platform with user authentication and database",
+  "description": "Full-Stack Smart Tool Recommendation Platform with AI-powered recommendations and user authentication",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -15,10 +15,12 @@
     "recommendations",
     "ai",
     "tools",
-    "gemini",
-    "fullstack"
+    "smart-tools",
+    "recommendation-platform",
+    "fullstack",
+    "tool-finder"
   ],
-  "author": "Eureka Juniors",
+  "author": "Tool Finder Development Team",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",

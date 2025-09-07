@@ -1,4 +1,4 @@
-// Enhanced Main JavaScript for Eureka Juniors
+// Enhanced Main JavaScript for Tool Finder
 // Modern ES6+ Implementation with Advanced Animations and Performance Optimizations
 
 // API Configuration
@@ -365,7 +365,7 @@ function safeBtoa(str) {
 // Cache Management
 class CacheManager {
     constructor() {
-        this.cacheName = 'eureka-cache';
+        this.cacheName = 'tool-finder-cache';
         this.cacheExpiry = 1000 * 60 * 30; // 30 minutes
     }
     
@@ -844,7 +844,7 @@ function fillExampleData(example) {
 
 // Theme Management (Note: theme toggle has been removed, but we maintain theme functionality)
 function initTheme() {
-    const savedTheme = localStorage.getItem('eureka-theme') || 'dark';
+    const savedTheme = localStorage.getItem('tool-finder-theme') || 'dark';
     
     // Apply saved theme
     applyTheme(savedTheme);
@@ -886,7 +886,7 @@ function initPWA() {
     window.addEventListener('appinstalled', (e) => {
         console.log('App installed successfully');
         hideInstallPrompt();
-        showNotification('App installed successfully! You can now use Eureka Juniors offline.', 'success');
+        showNotification('App installed successfully! You can now use Tool Finder offline.', 'success');
     });
 }
 
@@ -897,7 +897,7 @@ function showInstallPrompt() {
     installPrompt.innerHTML = `
         <div class="flex items-center">
             <i class="fas fa-download mr-3"></i>
-            <span>Install Eureka Juniors for offline access!</span>
+            <span>Install Tool Finder for offline access!</span>
             <button id="installBtn">Install</button>
             <button id="dismissBtn">×</button>
         </div>

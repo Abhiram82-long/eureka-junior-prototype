@@ -1,13 +1,13 @@
-# Eureka Juniors - Smart Tool Recommendation Platform
+# Tool Finder - Smart Tool Recommendation Platform
 
 ## 🎯 Project Overview
 
-**Competition**: Eureka Juniors Business Competition  
-**Phase**: Full-Stack Implementation with Authentication & Database  
-**Purpose**: Trust-first, use-case driven recommendation platform for students, researchers, and knowledge workers
+**Platform**: Full-Stack AI-Powered Tool Recommendation System  
+**Technology**: Node.js, Express, SQLite, Google Gemini AI  
+**Purpose**: Intelligent tool recommendation platform for students, researchers, and knowledge workers
 
 ### What It Does
-Eureka Juniors is an AI-powered platform that provides personalized software tool recommendations based on specific user requirements. It leverages Google's Gemini 2.0 Flash API with search grounding to deliver accurate, evidence-backed suggestions tailored to your exact needs.
+Tool Finder is an AI-powered platform that provides personalized software tool recommendations based on specific user requirements. It leverages Google's Gemini 2.0 Flash API with search grounding to deliver accurate, evidence-backed suggestions tailored to your exact needs.
 
 ### Problems Solved
 - **Tool Discovery Fatigue**: Eliminates the overwhelming process of researching tools manually
@@ -192,11 +192,11 @@ Each recommendation includes:
 ## 📂 Project Structure
 
 ```
-eureka-junior-prototype/
+tool-finder-platform/
 ├── 📁 config/
 │   └── database.js          # Database configuration and methods
 ├── 📁 database/
-│   └── eureka.db           # SQLite database file (created on init)
+│   └── tool-finder.db      # SQLite database file (created on init)
 ├── 📁 middleware/
 │   └── auth.js             # Authentication middleware
 ├── 📁 public/              # Static files served to client
@@ -322,8 +322,8 @@ The batch file automatically:
 
 1. **Clone the repository:**
 ```bash
-git clone -b deployable-branch https://github.com/Abhiram82-long/eureka-junior-prototype.git
-cd eureka-junior-prototype
+git clone https://github.com/tool-finder/tool-finder-platform.git
+cd tool-finder-platform
 ```
 
 2. **Install dependencies:**
@@ -343,7 +343,7 @@ NODE_ENV=development
 PORT=3000
 SESSION_SECRET=your-super-secure-random-string-change-this
 FRONTEND_URL=http://localhost:3000
-DB_PATH=./database/eureka.db
+DB_PATH=./database/tool-finder.db
 BCRYPT_ROUNDS=12
 ```
 
@@ -440,7 +440,7 @@ Open your browser and navigate to `http://localhost:3000`
 | `PORT` | Server port | 3000 | Yes |
 | `SESSION_SECRET` | Session encryption key | - | Yes |
 | `FRONTEND_URL` | Frontend URL for CORS | http://localhost:3000 | Yes |
-| `DB_PATH` | Database file path | ./database/eureka.db | Yes |
+| `DB_PATH` | Database file path | ./database/tool-finder.db | Yes |
 | `BCRYPT_ROUNDS` | Password hashing rounds | 12 | Yes |
 
 ### Security Considerations
@@ -608,7 +608,7 @@ This project is licensed under the MIT License - see below for details:
 ```
 MIT License
 
-Copyright (c) 2024 Eureka Juniors Team
+Copyright (c) 2024 Tool Finder Development Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -632,7 +632,7 @@ SOFTWARE.
 ## 👥 Team & Acknowledgments
 
 ### Development Team
-- **Eureka Juniors Competition Team** - Original concept and implementation
+- **Tool Finder Development Team** - Platform concept and implementation
 
 ### Technologies & Services
 - **Google Gemini API** - AI-powered recommendations
@@ -641,16 +641,16 @@ SOFTWARE.
 - **Tailwind CSS** - UI framework
 
 ### Special Thanks
-- Competition organizers and mentors
+- Open source community contributors
 - Beta testers and early users
-- Open source community
+- AI research and development community
 
 ## 📞 Support & Contact
 
 ### Getting Help
 - **Documentation**: This README file
-- **Issues**: [GitHub Issues](https://github.com/Abhiram82-long/eureka-junior-prototype/issues)
-- **Email**: Contact through competition channels
+- **Issues**: [GitHub Issues](https://github.com/tool-finder/tool-finder-platform/issues)
+- **Email**: support@tool-finder.com
 
 ### Reporting Issues
 When reporting issues, please include:
@@ -663,12 +663,12 @@ When reporting issues, please include:
 ## 🎯 Quick Links
 
 - **Live Demo**: `http://localhost:3000` (after local setup)
-- **Repository**: [GitHub - deployable-branch](https://github.com/Abhiram82-long/eureka-junior-prototype/tree/deployable-branch)
+- **Repository**: [GitHub - Tool Finder Platform](https://github.com/tool-finder/tool-finder-platform)
 - **Get Gemini API Key**: [Google AI Studio](https://aistudio.google.com/app/apikey)
-- **Competition**: Eureka Juniors Business Competition
+- **Platform**: Tool Finder Smart Recommendation System
 
 ---
 
-**Built with ❤️ for the Eureka Juniors Business Competition**
+**Built with ❤️ for Smart Tool Discovery**
 
 *Empowering smart tool decisions through AI-driven recommendations*

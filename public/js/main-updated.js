@@ -1,4 +1,4 @@
-// Updated Main JavaScript for Eureka Juniors Full-Stack Version
+// Updated Main JavaScript for Tool Finder Full-Stack Version
 document.addEventListener('DOMContentLoaded', async function() {
     await checkAuthentication();
     await checkApiKeyStatus();

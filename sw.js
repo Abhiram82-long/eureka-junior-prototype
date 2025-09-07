@@ -1,6 +1,6 @@
-// Service Worker for Eureka Juniors PWA
+// Service Worker for Tool Finder PWA
 
-const CACHE_NAME = 'eureka-juniors-v1';
+const CACHE_NAME = 'tool-finder-v1';
 const STATIC_CACHE_URLS = [
     '/index.html',
     '/results.html',
