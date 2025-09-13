@@ -169,8 +169,10 @@ function showNotification(message, type = 'info') {
     existingNotifications.forEach(notif => notif.remove());
     
     const notification = document.createElement('div');
-    const bgColor = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-blue-600';
-    const icon = type === 'error' ? 'fa-exclamation-triangle' : type === 'success' ? 'fa-check' : 'fa-info-circle';
+    const config = window.TOOL_FINDER_CONFIG?.notifications || {};
+    const theme = config.themes?.[type] || config.themes?.info || { bg: 'bg-blue-600', icon: 'fa-info-circle' };
+    const bgColor = theme.bg;
+    const icon = theme.icon;
     
     notification.className = `notification-toast fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-300`;
     
@@ -199,5 +201,5 @@ function showNotification(message, type = 'info') {
         setTimeout(() => {
             if (notification.parentNode) notification.remove();
         }, 300);
-    }, 5000);
+    }, config.autoRemoveDelay || 5000);
 }
