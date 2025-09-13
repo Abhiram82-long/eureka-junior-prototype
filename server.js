@@ -15,6 +15,9 @@ const userRoutes = require('./routes/user');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy for Replit's HTTPS proxy environment
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
     contentSecurityPolicy: false, // Allow inline scripts for development
@@ -44,9 +47,10 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === 'production' || process.env.REPL_ID, // Enable secure cookies in Replit
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: process.env.REPL_ID ? 'none' : 'lax' // Allow cross-site cookies in Replit iframe
     }
 }));
 
