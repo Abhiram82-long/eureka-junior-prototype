@@ -174,7 +174,7 @@ function showNotification(message, type = 'info') {
     const bgColor = theme.bg;
     const icon = theme.icon;
     
-    notification.className = `notification-toast fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md ${bgColor} text-white transform translate-x-full opacity-0 transition-all duration-300`;
+    notification.className = `notification-toast fixed ${config.position || 'top-20 right-4'} px-6 py-4 rounded-lg shadow-lg ${config.zIndex || 'z-50'} ${config.maxWidth || 'max-w-md'} ${bgColor} text-white transform translate-x-full opacity-0 ${config.ui?.animations?.transition || 'transition-all duration-300'}`;
     
     notification.innerHTML = `
         <div class="flex items-center">
@@ -192,7 +192,7 @@ function showNotification(message, type = 'info') {
     setTimeout(() => {
         notification.style.transform = 'translateX(0)';
         notification.style.opacity = '1';
-    }, 100);
+    }, config.animationDelay || 100);
     
     // Auto remove
     setTimeout(() => {
@@ -200,6 +200,6 @@ function showNotification(message, type = 'info') {
         notification.style.opacity = '0';
         setTimeout(() => {
             if (notification.parentNode) notification.remove();
-        }, 300);
+        }, config.fadeOutDuration || 300);
     }, config.autoRemoveDelay || 5000);
 }

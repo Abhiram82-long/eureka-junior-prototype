@@ -43,9 +43,9 @@ if [ ! -f .env ]; then
   warn ".env not found. Creating a default .env file..."
   cat > .env << 'EOL'
 NODE_ENV=development
-PORT=3000
+PORT=5000
 SESSION_SECRET=change-this-secure-key-in-production
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:5000
 DB_PATH=./database/tool-finder.db
 BCRYPT_ROUNDS=12
 EOL
@@ -55,7 +55,7 @@ else
 fi
 
 # --- Load env values ---
-PORT=$(grep -E '^PORT=' .env | head -n1 | cut -d'=' -f2- || echo 3000)
+PORT=$(grep -E '^PORT=' .env | head -n1 | cut -d'=' -f2- || echo 5000)
 DB_PATH=$(grep -E '^DB_PATH=' .env | head -n1 | cut -d'=' -f2- || echo ./database/tool-finder.db)
 SESSION_SECRET=$(grep -E '^SESSION_SECRET=' .env | head -n1 | cut -d'=' -f2- || echo '')
 
@@ -96,12 +96,28 @@ ok "Port ${PORT} is available."
 
 # --- Install dependencies ---
 info "Installing npm dependencies (this may take a moment)..."
-npm install
+if ! npm install; then
+  err "Failed to install dependencies. Attempting automatic fixes..."
+  info "Clearing npm cache and trying again..."
+  npm cache clean --force >/dev/null 2>&1
+  info "Removing node_modules and package-lock.json..."
+  rm -rf node_modules package-lock.json >/dev/null 2>&1
+  info "Retrying npm install..."
+  if ! npm install; then
+    err "Dependencies installation failed after automatic fixes."
+    printf '%s\n' "       Troubleshooting steps:"
+    printf '%s\n' "         1. Check your internet connection"
+    printf '%s\n' "         2. Ensure you have proper permissions in this directory"
+    printf '%s\n' "         3. Try running 'npm install' manually to see detailed error messages"
+    printf '%s\n' "         4. Consider using a different npm registry: npm config set registry https://registry.npmjs.org/"
+    exit 1
+  fi
+fi
 ok "Dependencies installed."
 
 # --- Verify critical dependencies can be resolved ---
 info "Verifying installed packages..."
-if ! node -e "require('express');require('express-session');require('sqlite3');require('helmet');require('cors');require('express-rate-limit');require('dotenv');require('express-validator');require('node-fetch');" >/dev/null 2>&1; then
+if ! node -e "require('express');require('express-session');require('sqlite3');require('helmet');require('cors');require('express-rate-limit');require('dotenv');require('express-validator');" >/dev/null 2>&1; then
   err "One or more required packages could not be resolved. Try removing node_modules and reinstalling."
   printf '%s\n' "       Commands:"; printf '%s\n' "         rm -rf node_modules package-lock.json && npm install"; exit 1;
 fi
@@ -110,10 +126,41 @@ ok "Package resolution successful."
 # --- Initialize database if missing ---
 if [ ! -f "${DB_PATH}" ]; then
   info "Initializing SQLite database at ${DB_PATH} ..."
-  npm run init-db
+  if ! npm run init-db; then
+    err "Database initialization failed. Attempting automatic fix..."
+    info "Checking if init-db script exists..."
+    if [ ! -f scripts/init-db.js ]; then
+      err "Missing database initialization script at scripts/init-db.js"
+      printf '%s\n' "       Please ensure the project files are complete."
+      exit 1
+    fi
+    info "Retrying database initialization with verbose output..."
+    if ! node scripts/init-db.js; then
+      err "Database initialization failed after retry."
+      printf '%s\n' "       Troubleshooting steps:"
+      printf '%s\n' "         1. Check if SQLite3 is properly installed: npm list sqlite3"
+      printf '%s\n' "         2. Verify database directory permissions: ${DB_DIR}"
+      printf '%s\n' "         3. Ensure Node.js has write access to create database files"
+      printf '%s\n' "         4. Try deleting the database directory and running again"
+      exit 1
+    fi
+  fi
   ok "Database initialized."
 else
   ok "Database file exists: ${DB_PATH}"
+fi
+
+# --- Test database connectivity ---
+info "Testing database connectivity..."
+if ! node -e "const db = require('./config/database'); db.init().then(() => { console.log('Database connection test passed'); return db.close(); }).catch(e => { console.error('Database test failed:', e.message); process.exit(1); })" >/dev/null 2>&1; then
+  err "Database connectivity test failed."
+  printf '%s\n' "       Troubleshooting steps:"
+  printf '%s\n' "         1. Check if database file exists and is not corrupted: ${DB_PATH}"
+  printf '%s\n' "         2. Verify SQLite3 module is installed: npm list sqlite3"
+  printf '%s\n' "         3. Try deleting the database file and reinitializing"
+  exit 1
+else
+  ok "Database connectivity test passed."
 fi
 
 sep
