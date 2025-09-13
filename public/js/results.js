@@ -656,7 +656,10 @@ function displayQueryDetails(query) {
 function displayRecommendations(data) {
     const container = document.getElementById('resultsContainer');
     
-    if (!data.recommendations || data.recommendations.length === 0) {
+    // Check if recommendations array is missing or empty
+    const recommendationsArray = data.recommendations || (data.recommendationsArray || []);
+    
+    if (!recommendationsArray || recommendationsArray.length === 0) {
         document.getElementById('noResults').classList.remove('hidden');
         document.getElementById('actionsSection').classList.add('hidden');
         return;
@@ -671,10 +674,10 @@ function displayRecommendations(data) {
     let summaryContent = data.summary;
     if (!summaryContent || summaryContent.trim() === '' || summaryContent === 'undefined') {
         // Generate a meaningful default summary based on the recommendations
-        const topTool = data.recommendations[0]?.name || 'the top recommendation';
-        const avgConfidence = Math.round(data.recommendations.reduce((acc, rec) => acc + (rec.confidence || 0), 0) / data.recommendations.length);
+        const topTool = recommendationsArray[0]?.name || 'the top recommendation';
+        const avgConfidence = Math.round(recommendationsArray.reduce((acc, rec) => acc + (rec.confidence || 0), 0) / recommendationsArray.length);
         
-        summaryContent = `Based on your requirements, we've identified ${data.recommendations.length} tools that match your needs. ` +
+        summaryContent = `Based on your requirements, we've identified ${recommendationsArray.length} tools that match your needs. ` +
             `${topTool} leads our recommendations with the highest confidence score. ` +
             `These tools have been analyzed for compatibility with your specific use case and budget constraints, ` +
             `with an average confidence score of ${avgConfidence}%. Each recommendation includes detailed pros, cons, and pricing information to help you make an informed decision.`;
@@ -690,16 +693,16 @@ function displayRecommendations(data) {
                     AI Analysis Summary
                 </h3>
                 <p class="text-gray-200 leading-relaxed stagger-child">${summaryContent}</p>
-                ${data.recommendations && data.recommendations.length > 0 ? `
+                ${recommendationsArray && recommendationsArray.length > 0 ? `
                     <div class="mt-4 flex flex-wrap gap-2">
-                        ${data.recommendations.slice(0, 3).map((rec, idx) => `
+                        ${recommendationsArray.slice(0, 3).map((rec, idx) => `
                             <span class="bg-blue-800/50 text-blue-200 px-3 py-1 rounded-full text-sm border border-blue-600/50">
                                 ${rec.name}
                             </span>
                         `).join('')}
-                        ${data.recommendations.length > 3 ? `
+                        ${recommendationsArray.length > 3 ? `
                             <span class="bg-blue-800/50 text-blue-200 px-3 py-1 rounded-full text-sm border border-blue-600/50">
-                                +${data.recommendations.length - 3} more
+                                +${recommendationsArray.length - 3} more
                             </span>
                         ` : ''}
                     </div>
@@ -710,7 +713,7 @@ function displayRecommendations(data) {
     container.appendChild(summaryElement);
     
     // Display each recommendation with enhanced staggered animation
-    data.recommendations.forEach((rec, index) => {
+    recommendationsArray.forEach((rec, index) => {
         const cardHTML = createRecommendationCard(rec, index);
         const cardElement = document.createElement('div');
         cardElement.innerHTML = cardHTML.trim();
@@ -755,8 +758,8 @@ function displayRecommendations(data) {
     let additionalContent = data.additionalNotes;
     if (!additionalContent || additionalContent.trim() === '' || additionalContent === 'undefined') {
         // Generate contextual additional notes based on the recommendations
-        const hasTrials = data.recommendations.some(rec => rec.trialAvailable);
-        const hasFreeOptions = data.recommendations.some(rec => rec.pricing && rec.pricing.toLowerCase().includes('free'));
+        const hasTrials = recommendationsArray.some(rec => rec.trialAvailable);
+        const hasFreeOptions = recommendationsArray.some(rec => rec.pricing && rec.pricing.toLowerCase().includes('free'));
         const trialTip = hasTrials ? 'Several of these tools offer free trials - we recommend testing them before committing. ' : '';
         const freeTip = hasFreeOptions ? 'Some options include free tiers that might be sufficient for your needs. ' : '';
         
@@ -944,12 +947,15 @@ function exportResults() {
         
         const dataStr = JSON.stringify(exportData, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        
         const exportFileDefaultName = `tool-finder-recommendations-${Date.now()}.json`;
         
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);
         linkElement.setAttribute('download', exportFileDefaultName);
+        document.body.appendChild(linkElement);
         linkElement.click();
+        document.body.removeChild(linkElement);
     }
 }
+
+// ... existing code ...
