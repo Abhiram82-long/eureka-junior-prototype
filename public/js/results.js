@@ -223,11 +223,8 @@ class ResultsAnimationController {
             modal.style.opacity = '1';
             modalContent.style.transform = 'scale(1)';
             
-            // Scroll to top of page to ensure modal is visible
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            // Don't scroll - let the modal stay centered in viewport
+            // The modal is already positioned with fixed positioning and flex centering
             
             // Focus on modal for accessibility
             modalContent.focus();
@@ -656,10 +653,27 @@ function displayQueryDetails(query) {
 function displayRecommendations(data) {
     const container = document.getElementById('resultsContainer');
     
-    // Check if recommendations array is missing or empty
-    const recommendationsArray = data.recommendations || (data.recommendationsArray || []);
+    // Check if recommendations array is missing or empty - handle multiple possible structures
+    let recommendationsArray = data.recommendations || data.recommendationsArray || [];
     
-    if (!recommendationsArray || recommendationsArray.length === 0) {
+    // Handle nested structure where recommendations might be in data.recommendations.recommendations
+    if (data.recommendations && Array.isArray(data.recommendations.recommendations)) {
+        recommendationsArray = data.recommendations.recommendations;
+    }
+    
+    // Handle case where data itself might be the recommendations array
+    if (Array.isArray(data) && data.length > 0) {
+        recommendationsArray = data;
+    }
+    
+    console.log('Recommendations array found:', recommendationsArray);
+    console.log('Summary found:', data.summary);
+    console.log('Additional notes found:', data.additionalNotes);
+    
+    // Show summary and insights even if no recommendations (but hide no-results if we have summary)
+    const hasContent = (recommendationsArray && recommendationsArray.length > 0) || data.summary || data.additionalNotes;
+    
+    if (!hasContent) {
         document.getElementById('noResults').classList.remove('hidden');
         document.getElementById('actionsSection').classList.add('hidden');
         return;

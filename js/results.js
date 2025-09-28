@@ -223,11 +223,8 @@ class ResultsAnimationController {
             modal.style.opacity = '1';
             modalContent.style.transform = 'scale(1)';
             
-            // Scroll to top of page to ensure modal is visible
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            // Don't scroll - let the modal stay centered in viewport
+            // The modal is already positioned with fixed positioning and flex centering
             
             // Focus on modal for accessibility
             modalContent.focus();
@@ -664,14 +661,30 @@ function displayRecommendations(data) {
         return;
     }
     
-    // If recommendations array is empty or missing, still show summary
-    if (!data.recommendations || data.recommendations.length === 0) {
-        // Only hide everything if there's no data at all
-        if (!data.summary && !data.additionalNotes) {
-            document.getElementById('noResults').classList.remove('hidden');
-            document.getElementById('actionsSection').classList.add('hidden');
-            return;
-        }
+    // Handle multiple possible data structures for recommendations
+    let recommendationsArray = data.recommendations || [];
+    
+    // Handle nested structure where recommendations might be in data.recommendations.recommendations
+    if (data.recommendations && Array.isArray(data.recommendations.recommendations)) {
+        recommendationsArray = data.recommendations.recommendations;
+    }
+    
+    // Handle case where data itself might be the recommendations array
+    if (Array.isArray(data) && data.length > 0 && data[0].name) {
+        recommendationsArray = data;
+    }
+    
+    console.log('Final recommendations array:', recommendationsArray);
+    console.log('Summary:', data.summary);
+    console.log('Additional notes:', data.additionalNotes);
+    
+    // Show content even if no recommendations array, as long as we have summary or notes
+    const hasAnyContent = (recommendationsArray && recommendationsArray.length > 0) || data.summary || data.additionalNotes;
+    
+    if (!hasAnyContent) {
+        document.getElementById('noResults').classList.remove('hidden');
+        document.getElementById('actionsSection').classList.add('hidden');
+        return;
     }
     
     // Always display summary box with enhanced animation (blue box)
@@ -683,10 +696,10 @@ function displayRecommendations(data) {
     let summaryContent = data.summary;
     if (!summaryContent || summaryContent.trim() === '' || summaryContent === 'undefined') {
         // Generate a meaningful default summary based on the recommendations
-        const topTool = data.recommendations[0]?.name || 'the top recommendation';
-        const avgConfidence = Math.round(data.recommendations.reduce((acc, rec) => acc + (rec.confidence || 0), 0) / data.recommendations.length);
+        const topTool = recommendationsArray[0]?.name || 'the top recommendation';
+        const avgConfidence = recommendationsArray.length > 0 ? Math.round(recommendationsArray.reduce((acc, rec) => acc + (rec.confidence || 0), 0) / recommendationsArray.length) : 85;
         
-        summaryContent = `Based on your requirements, we've identified ${data.recommendations.length} tools that match your needs. ` +
+        summaryContent = `Based on your requirements, we've identified ${recommendationsArray.length} tools that match your needs. ` +
             `${topTool} leads our recommendations with the highest confidence score. ` +
             `These tools have been analyzed for compatibility with your specific use case and budget constraints, ` +
             `with an average confidence score of ${avgConfidence}%. Each recommendation includes detailed pros, cons, and pricing information to help you make an informed decision.`;
@@ -702,16 +715,16 @@ function displayRecommendations(data) {
                     AI Analysis Summary
                 </h3>
                 <p class="text-gray-200 leading-relaxed stagger-child">${summaryContent}</p>
-                ${data.recommendations && data.recommendations.length > 0 ? `
+                ${recommendationsArray && recommendationsArray.length > 0 ? `
                     <div class="mt-4 flex flex-wrap gap-2">
-                        ${data.recommendations.slice(0, 3).map((rec, idx) => `
+                        ${recommendationsArray.slice(0, 3).map((rec, idx) => `
                             <span class="bg-blue-800/50 text-blue-200 px-3 py-1 rounded-full text-sm border border-blue-600/50">
                                 ${rec.name}
                             </span>
                         `).join('')}
-                        ${data.recommendations.length > 3 ? `
+                        ${recommendationsArray.length > 3 ? `
                             <span class="bg-blue-800/50 text-blue-200 px-3 py-1 rounded-full text-sm border border-blue-600/50">
-                                +${data.recommendations.length - 3} more
+                                +${recommendationsArray.length - 3} more
                             </span>
                         ` : ''}
                     </div>
@@ -722,7 +735,8 @@ function displayRecommendations(data) {
     container.appendChild(summaryElement);
     
     // Display each recommendation with enhanced staggered animation
-    data.recommendations.forEach((rec, index) => {
+    if (recommendationsArray && recommendationsArray.length > 0) {
+        recommendationsArray.forEach((rec, index) => {
         const cardHTML = createRecommendationCard(rec, index);
         const cardElement = document.createElement('div');
         cardElement.innerHTML = cardHTML.trim();
@@ -757,6 +771,7 @@ function displayRecommendations(data) {
             });
         }, index * 200);
     });
+    }
     
     // Always display additional insights box with enhanced animation (orange box)
     const notesElement = document.createElement('div');
@@ -767,8 +782,14 @@ function displayRecommendations(data) {
     let additionalContent = data.additionalNotes;
     if (!additionalContent || additionalContent.trim() === '' || additionalContent === 'undefined') {
         // Generate contextual additional notes based on the recommendations
-        const hasTrials = data.recommendations.some(rec => rec.trialAvailable);
-        const hasFreeOptions = data.recommendations.some(rec => rec.pricing && rec.pricing.toLowerCase().includes('free'));
+        let hasTrials = false;
+        let hasFreeOptions = false;
+        
+        if (recommendationsArray && recommendationsArray.length > 0) {
+            hasTrials = recommendationsArray.some(rec => rec.trialAvailable);
+            hasFreeOptions = recommendationsArray.some(rec => rec.pricing && rec.pricing.toLowerCase().includes('free'));
+        }
+        
         const trialTip = hasTrials ? 'Several of these tools offer free trials - we recommend testing them before committing. ' : '';
         const freeTip = hasFreeOptions ? 'Some options include free tiers that might be sufficient for your needs. ' : '';
         
@@ -962,6 +983,8 @@ function exportResults() {
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);
         linkElement.setAttribute('download', exportFileDefaultName);
+        document.body.appendChild(linkElement);
         linkElement.click();
+        document.body.removeChild(linkElement);
     }
 }

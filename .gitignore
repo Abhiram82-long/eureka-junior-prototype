@@ -78,3 +78,6 @@ temp/
 build/
 dist/
 out/
+
+# Documentation files
+Video_Demonstration_Plan.md
